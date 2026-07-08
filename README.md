@@ -57,6 +57,36 @@ Rate: `160 iterations/s` for `45s`.
 | ePHPm source worker mode | 7091 | 156.53/s | 110 | 3.83ms | 819.08ms | 1.23s | 0 |
 | PHP-FPM + nginx + Redis | 4744 | 101.79/s | 2457 | 1.49s | 1.72s | 2.50s | 0 |
 
+**Prominent caveat:** This is not "ePHPm beats PHP-FPM." This is "ePHPm can beat PHP-FPM when the app and deployment model are adapted to ePHPm's worker/native-service architecture."
+
+The important finding is not a universal runtime victory. The important finding is the deployment shape where ePHPm becomes compelling.
+
+## Should I Use ePHPm?
+
+| Situation | Practical answer | Operator note |
+| --- | --- | --- |
+| Drop-in replacement for arbitrary PHP app | Probably no | The lab results do not support treating ePHPm as a generic faster PHP-FPM swap. |
+| Normal request mode against PHP-FPM | PHP-FPM likely wins | PHP-FPM plus nginx is extremely mature, especially with OPcache and ordinary per-request PHP apps. |
+| Laravel/Octane-style persistent worker | Worth testing | This is where ePHPm finally showed a clear advantage in the lab. |
+| Cache-heavy app using native ePHPm KV | Strongest case | The best result came from persistent worker mode plus native KV, avoiding Redis/Predis/TCP on hot paths. |
+| Need boring production certainty today | PHP-FPM still king | PHP-FPM has the stronger production track record, release cadence, tooling, and operator familiarity. |
+
+## Winning Architecture Shape
+
+The winning ePHPm shape was:
+
+```text
+k6 -> Service -> ePHPm worker -> native KV
+```
+
+The PHP-FPM comparison shape was:
+
+```text
+k6 -> Service -> nginx -> PHP-FPM -> Predis/TCP -> Redis
+```
+
+That distinction matters. The ePHPm win did not come from pointing an arbitrary PHP app at ePHPm in normal request mode. It came from adapting the Laravel workload to a persistent worker and using ePHPm's native service path for KV/cache behavior.
+
 ## Important Caveats
 
 This is a reproducible lab, not a universal benchmark.
@@ -66,6 +96,20 @@ This is a reproducible lab, not a universal benchmark.
 - Historical docs mention the original LKE node names and a temporary `ttl.sh` image. The committed manifests have been made portable by removing `nodeName` pins and replacing the expired worker image with a placeholder.
 - The v4 worker result depends on a source-built ePHPm image. The public `ephpm/ephpm:8.4` image did not provide the worker runtime path that produced the win in this lab.
 - The manifests are intentionally small and self-contained. They generate apps in init containers rather than assuming a long-lived application image.
+
+## What I Would Test Next
+
+If I were turning this into a stronger operator-grade evaluation, I would test:
+
+| Next test | Why it matters |
+| --- | --- |
+| Larger nodes | The original LKE nodes were small; bigger nodes would show whether the shape holds with more CPU and memory headroom. |
+| Metrics API installed for CPU/memory | Latency without resource data is incomplete. I want CPU, memory, restart, and saturation signals. |
+| Sustained 10-30 minute runs | The current runs are short. Persistent workers need longer soak tests to expose leaks, drift, and tail behavior. |
+| Multiple worker counts | Worker count and concurrency tuning may change the throughput knee and p95/p99 behavior. |
+| Redis extension vs Predis | PHP-FPM used Predis/TCP. Testing `phpredis` would make the PHP-FPM cache baseline stronger. |
+| Octane/Swoole/RoadRunner/ePHPm comparison | ePHPm should be compared against other persistent-worker PHP runtimes, not only PHP-FPM. |
+| Failure/restart behavior for persistent workers | Production confidence depends on how workers behave across crashes, deploys, stale state, and pod restarts. |
 
 ## Prerequisites
 

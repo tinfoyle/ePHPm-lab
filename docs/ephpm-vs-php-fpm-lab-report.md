@@ -427,6 +427,54 @@ My read: ePHPm also showed pressure at rate-8. Its p95 and p99 became ugly compa
 
 The median tells the story: ePHPm's median stayed at `3.83ms`, while PHP-FPM's median moved to `1.49s`. ePHPm had intermittent tail spikes; PHP-FPM spent most of the run backed up.
 
+## Operator Positioning
+
+The headline should not be "ePHPm beats PHP-FPM."
+
+The more accurate headline is:
+
+> ePHPm can beat PHP-FPM when the app and deployment model are adapted to ePHPm's worker/native-service architecture.
+
+That wording matters. In this lab, ePHPm did not win as a drop-in replacement for an arbitrary PHP app. It won after I changed the deployment shape to match what ePHPm is trying to be: a persistent PHP application runtime with native services.
+
+## Should I Use ePHPm?
+
+| Situation | Practical answer | Operator note |
+| --- | --- | --- |
+| Drop-in replacement for arbitrary PHP app | Probably no | The lab results do not support treating ePHPm as a generic faster PHP-FPM swap. |
+| Normal request mode against PHP-FPM | PHP-FPM likely wins | PHP-FPM plus nginx is mature, predictable, and very fast for ordinary per-request PHP. |
+| Laravel/Octane-style persistent worker | Worth testing | This is where ePHPm finally showed a clear advantage. |
+| Cache-heavy app using native ePHPm KV | Strongest case | The biggest win came from persistent worker mode plus native KV/cache behavior. |
+| Need boring production certainty today | PHP-FPM still king | PHP-FPM has the stronger operational track record and release predictability. |
+
+## Winning Architecture Shape
+
+The winning ePHPm path was:
+
+```text
+k6 -> Service -> ePHPm worker -> native KV
+```
+
+The PHP-FPM comparison path was:
+
+```text
+k6 -> Service -> nginx -> PHP-FPM -> Predis/TCP -> Redis
+```
+
+This is not a small implementation detail. It is the core finding. ePHPm became compelling when the application stopped treating it like a simple request server and started using its worker/native-service model.
+
+## What I Would Test Next
+
+| Next test | Why it matters |
+| --- | --- |
+| Larger nodes | The original LKE nodes were small; larger nodes would show whether the same shape holds with more headroom. |
+| Metrics API installed for CPU/memory | Request latency needs resource context to explain saturation. |
+| Sustained 10-30 minute runs | Persistent workers need soak testing for leaks, stale state, and tail drift. |
+| Multiple worker counts | Worker tuning may materially change throughput and p95/p99 behavior. |
+| Redis extension vs Predis | Testing `phpredis` would strengthen the PHP-FPM cache baseline. |
+| Octane/Swoole/RoadRunner/ePHPm comparison | ePHPm should be compared against other persistent-worker PHP runtimes too. |
+| Failure/restart behavior for persistent workers | Production adoption depends on crash, deploy, restart, and stale-state behavior. |
+
 ## Overall Timeline
 
 | Phase | Workload | ePHPm mode | Result |
