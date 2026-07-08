@@ -206,5 +206,4 @@ The benchmark-only Krayin credentials (`admin@example.com` / `admin123`) are inc
 
 ## License
 
-No project license has been selected yet. Add one before expecting broad reuse.
-
+This lab repository is licensed under the MIT License, matching ePHPm.
