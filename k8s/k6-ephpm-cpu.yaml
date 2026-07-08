@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-ephpm-cpu
+  namespace: php-bench
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: k6
+        image: grafana/k6:latest
+        args:
+        - run
+        - -e
+        - TARGET=http://ephpm:8080
+        - -e
+        - ROUTE=/cpu.php
+        - /scripts/bench.js
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        volumeMounts:
+        - name: script
+          mountPath: /scripts
+          readOnly: true
+      volumes:
+      - name: script
+        configMap:
+          name: k6-script

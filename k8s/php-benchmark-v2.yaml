@@ -1,0 +1,537 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: php-bench-v2-app
+  namespace: php-bench
+data:
+  index.php: |
+    <?php
+    declare(strict_types=1);
+
+    $started = hrtime(true);
+
+    spl_autoload_register(static function (string $class): void {
+        $prefix = 'Bench\\';
+        if (strncmp($class, $prefix, strlen($prefix)) !== 0) {
+            return;
+        }
+
+        $relative = substr($class, strlen($prefix));
+        $file = __DIR__ . '/src/' . str_replace('\\', '/', $relative) . '.php';
+        if (is_file($file)) {
+            require $file;
+        }
+    });
+
+    $router = new Bench\Http\Router(
+        new Bench\Repository\ProductRepository(__DIR__ . '/data/products.json'),
+        new Bench\View\Renderer(__DIR__ . '/templates')
+    );
+
+    $response = $router->dispatch(
+        parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
+        $_GET
+    );
+
+    header('X-App-Elapsed-Ns: ' . (hrtime(true) - $started));
+    header('X-PHP-Version: ' . PHP_VERSION);
+    header('X-Server-Software: ' . ($_SERVER['SERVER_SOFTWARE'] ?? 'unknown'));
+    header('Content-Type: ' . $response['type']);
+    http_response_code($response['status']);
+    echo $response['body'];
+  src.Http.Router.php: |
+    <?php
+    declare(strict_types=1);
+
+    namespace Bench\Http;
+
+    use Bench\Repository\ProductRepository;
+    use Bench\View\Renderer;
+
+    final class Router
+    {
+        public function __construct(
+            private ProductRepository $products,
+            private Renderer $renderer
+        ) {}
+
+        public function dispatch(string $path, array $query): array
+        {
+            return match ($path) {
+                '/', '/products' => $this->productsPage($query),
+                '/api/products' => $this->productsApi($query),
+                '/api/product' => $this->productApi($query),
+                default => [
+                    'status' => 404,
+                    'type' => 'application/json',
+                    'body' => json_encode(['error' => 'not_found', 'path' => $path]),
+                ],
+            };
+        }
+
+        private function productsPage(array $query): array
+        {
+            $criteria = $this->criteria($query);
+            $products = $this->products->search($criteria);
+            $body = $this->renderer->render('products.php', [
+                'products' => $products,
+                'criteria' => $criteria,
+                'summary' => $this->products->summary($products),
+            ]);
+
+            return ['status' => 200, 'type' => 'text/html; charset=utf-8', 'body' => $body];
+        }
+
+        private function productsApi(array $query): array
+        {
+            $criteria = $this->criteria($query);
+            $products = $this->products->search($criteria);
+
+            return [
+                'status' => 200,
+                'type' => 'application/json',
+                'body' => json_encode([
+                    'criteria' => $criteria,
+                    'summary' => $this->products->summary($products),
+                    'products' => array_slice($products, 0, 24),
+                ]),
+            ];
+        }
+
+        private function productApi(array $query): array
+        {
+            $id = (int)($query['id'] ?? 1);
+            $product = $this->products->find($id);
+
+            return [
+                'status' => $product ? 200 : 404,
+                'type' => 'application/json',
+                'body' => json_encode($product ?: ['error' => 'not_found', 'id' => $id]),
+            ];
+        }
+
+        private function criteria(array $query): array
+        {
+            $sort = (string)($query['sort'] ?? 'score');
+
+            return [
+                'q' => trim((string)($query['q'] ?? '')),
+                'category' => trim((string)($query['category'] ?? '')),
+                'max_price' => isset($query['max_price']) ? (float)$query['max_price'] : null,
+                'sort' => in_array($sort, ['score', 'price', 'name'], true)
+                    ? $sort
+                    : 'score',
+            ];
+        }
+    }
+  src.Repository.ProductRepository.php: |
+    <?php
+    declare(strict_types=1);
+
+    namespace Bench\Repository;
+
+    final class ProductRepository
+    {
+        private ?array $products = null;
+
+        public function __construct(private string $path) {}
+
+        public function find(int $id): ?array
+        {
+            foreach ($this->all() as $product) {
+                if ($product['id'] === $id) {
+                    return $product;
+                }
+            }
+
+            return null;
+        }
+
+        public function search(array $criteria): array
+        {
+            $q = strtolower($criteria['q']);
+            $category = strtolower($criteria['category']);
+            $maxPrice = $criteria['max_price'];
+
+            $filtered = array_values(array_filter($this->all(), static function (array $product) use ($q, $category, $maxPrice): bool {
+                if ($category !== '' && strtolower($product['category']) !== $category) {
+                    return false;
+                }
+
+                if ($maxPrice !== null && $product['price'] > $maxPrice) {
+                    return false;
+                }
+
+                if ($q === '') {
+                    return true;
+                }
+
+                $haystack = strtolower($product['name'] . ' ' . $product['category'] . ' ' . implode(' ', $product['tags']));
+                return str_contains($haystack, $q);
+            }));
+
+            $sort = $criteria['sort'] ?? 'score';
+            usort($filtered, static function (array $a, array $b) use ($sort): int {
+                return match ($sort) {
+                    'price' => $a['price'] <=> $b['price'],
+                    'name' => strcmp($a['name'], $b['name']),
+                    default => $b['score'] <=> $a['score'],
+                };
+            });
+
+            return $filtered;
+        }
+
+        public function summary(array $products): array
+        {
+            $count = count($products);
+            $total = array_sum(array_column($products, 'price'));
+
+            return [
+                'count' => $count,
+                'avg_price' => $count ? round($total / $count, 2) : 0,
+                'top_score' => $count ? max(array_column($products, 'score')) : 0,
+            ];
+        }
+
+        private function all(): array
+        {
+            if ($this->products === null) {
+                $decoded = json_decode(file_get_contents($this->path), true, flags: JSON_THROW_ON_ERROR);
+                $this->products = $decoded['products'];
+            }
+
+            return $this->products;
+        }
+    }
+  src.View.Renderer.php: |
+    <?php
+    declare(strict_types=1);
+
+    namespace Bench\View;
+
+    final class Renderer
+    {
+        public function __construct(private string $templateDir) {}
+
+        public function render(string $template, array $data): string
+        {
+            extract($data, EXTR_SKIP);
+            ob_start();
+            require $this->templateDir . '/' . $template;
+            return ob_get_clean();
+        }
+    }
+  templates.products.php: |
+    <!doctype html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8">
+      <title>Benchmark Products</title>
+    </head>
+    <body>
+      <main>
+        <h1>Benchmark Products</h1>
+        <p>Count: <?= htmlspecialchars((string)$summary['count']) ?>; average price: $<?= htmlspecialchars((string)$summary['avg_price']) ?></p>
+        <ul>
+          <?php foreach (array_slice($products, 0, 20) as $product): ?>
+            <li>
+              <strong><?= htmlspecialchars($product['name']) ?></strong>
+              <span><?= htmlspecialchars($product['category']) ?></span>
+              <span>$<?= htmlspecialchars((string)$product['price']) ?></span>
+              <span><?= htmlspecialchars(implode(', ', $product['tags'])) ?></span>
+            </li>
+          <?php endforeach; ?>
+        </ul>
+      </main>
+    </body>
+    </html>
+  data.products.json: |
+    {
+      "products": [
+        {"id":1,"name":"Harbor Jacket","category":"apparel","price":129.00,"score":96,"tags":["waterproof","shell","coastal"]},
+        {"id":2,"name":"Deck Shoe","category":"apparel","price":84.50,"score":87,"tags":["grip","summer","deck"]},
+        {"id":3,"name":"Carbon Paddle","category":"gear","price":219.00,"score":92,"tags":["lightweight","carbon","touring"]},
+        {"id":4,"name":"Bilge Pump","category":"systems","price":74.95,"score":91,"tags":["electric","safety","12v"]},
+        {"id":5,"name":"Anchor Kit","category":"gear","price":159.95,"score":88,"tags":["galvanized","rode","chain"]},
+        {"id":6,"name":"Navigation Light","category":"systems","price":39.99,"score":79,"tags":["led","12v","night"]},
+        {"id":7,"name":"Dry Bag 20L","category":"gear","price":32.00,"score":85,"tags":["waterproof","storage","rolltop"]},
+        {"id":8,"name":"VHF Radio","category":"electronics","price":189.00,"score":94,"tags":["safety","communication","marine"]},
+        {"id":9,"name":"Chartplotter","category":"electronics","price":699.00,"score":98,"tags":["gps","display","navigation"]},
+        {"id":10,"name":"Fender Pair","category":"gear","price":54.00,"score":75,"tags":["dock","protection","vinyl"]},
+        {"id":11,"name":"Dock Line Set","category":"gear","price":49.00,"score":82,"tags":["nylon","mooring","rope"]},
+        {"id":12,"name":"Solar Charger","category":"electronics","price":119.00,"score":86,"tags":["usb","battery","solar"]},
+        {"id":13,"name":"First Aid Pack","category":"safety","price":44.95,"score":90,"tags":["medical","compact","marine"]},
+        {"id":14,"name":"Signal Flare Kit","category":"safety","price":89.95,"score":93,"tags":["emergency","visual","coastguard"]},
+        {"id":15,"name":"Tool Roll","category":"maintenance","price":58.00,"score":81,"tags":["repair","canvas","compact"]},
+        {"id":16,"name":"Wax Compound","category":"maintenance","price":26.50,"score":73,"tags":["hull","finish","cleaning"]},
+        {"id":17,"name":"Fuel Filter","category":"systems","price":34.00,"score":84,"tags":["engine","spare","filter"]},
+        {"id":18,"name":"Battery Monitor","category":"electronics","price":149.00,"score":89,"tags":["battery","bluetooth","12v"]},
+        {"id":19,"name":"Rain Bib","category":"apparel","price":144.00,"score":83,"tags":["waterproof","storm","shell"]},
+        {"id":20,"name":"Throw Rope","category":"safety","price":36.00,"score":80,"tags":["rescue","floating","bag"]},
+        {"id":21,"name":"Compass","category":"electronics","price":72.00,"score":77,"tags":["navigation","backup","analog"]},
+        {"id":22,"name":"Teak Cleaner","category":"maintenance","price":22.00,"score":70,"tags":["wood","cleaning","deck"]},
+        {"id":23,"name":"LED Cabin Strip","category":"systems","price":41.00,"score":78,"tags":["lighting","interior","12v"]},
+        {"id":24,"name":"Inflatable Vest","category":"safety","price":229.00,"score":97,"tags":["pfd","automatic","coastal"]}
+      ]
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: php-bench-v2-nginx
+  namespace: php-bench
+data:
+  default.conf: |
+    server {
+      listen 8080;
+      server_name _;
+      root /var/www/html;
+      index index.php;
+
+      location / {
+        try_files $uri /index.php?$query_string;
+      }
+
+      location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param SCRIPT_NAME $fastcgi_script_name;
+        fastcgi_pass 127.0.0.1:9000;
+      }
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: php-bench-v2-ephpm
+  namespace: php-bench
+data:
+  ephpm.toml: |
+    [server]
+    listen = "0.0.0.0:8080"
+    document_root = "/var/www/html"
+    index_files = ["index.php"]
+    fallback = ["$uri", "/index.php"]
+
+    [server.request]
+    max_body_size = 1024
+    max_header_size = 4096
+    trusted_hosts = ["ephpm-v2", "ephpm-v2.php-bench.svc", "ephpm-v2.php-bench.svc.cluster.local", "localhost", "127.0.0.1"]
+
+    [server.metrics]
+    enabled = false
+
+    [server.file_cache]
+    enabled = true
+
+    [server.security]
+    open_basedir = false
+    disable_shell_exec = true
+
+    [php]
+    max_execution_time = 30
+    memory_limit = "128M"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php-fpm-nginx-v2
+  namespace: php-bench
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: php-fpm-nginx-v2
+  template:
+    metadata:
+      labels:
+        app: php-fpm-nginx-v2
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.27-alpine
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 25m
+            memory: 32Mi
+          limits:
+            cpu: 50m
+            memory: 64Mi
+        volumeMounts:
+        - name: app
+          mountPath: /var/www/html
+          readOnly: true
+        - name: nginx-conf
+          mountPath: /etc/nginx/conf.d
+          readOnly: true
+      - name: php-fpm
+        image: php:8.4-fpm-alpine
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        volumeMounts:
+        - name: app
+          mountPath: /var/www/html
+          readOnly: true
+      volumes:
+      - name: app
+        configMap:
+          name: php-bench-v2-app
+          items:
+          - key: index.php
+            path: index.php
+          - key: src.Http.Router.php
+            path: src/Http/Router.php
+          - key: src.Repository.ProductRepository.php
+            path: src/Repository/ProductRepository.php
+          - key: src.View.Renderer.php
+            path: src/View/Renderer.php
+          - key: templates.products.php
+            path: templates/products.php
+          - key: data.products.json
+            path: data/products.json
+      - name: nginx-conf
+        configMap:
+          name: php-bench-v2-nginx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: php-fpm-nginx-v2
+  namespace: php-bench
+spec:
+  selector:
+    app: php-fpm-nginx-v2
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ephpm-v2
+  namespace: php-bench
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ephpm-v2
+  template:
+    metadata:
+      labels:
+        app: ephpm-v2
+    spec:
+      containers:
+      - name: ephpm
+        image: ephpm/ephpm:8.4
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 125m
+            memory: 160Mi
+          limits:
+            cpu: 250m
+            memory: 320Mi
+        volumeMounts:
+        - name: app
+          mountPath: /var/www/html
+          readOnly: true
+        - name: config
+          mountPath: /etc/ephpm/ephpm.toml
+          subPath: ephpm.toml
+          readOnly: true
+      volumes:
+      - name: app
+        configMap:
+          name: php-bench-v2-app
+          items:
+          - key: index.php
+            path: index.php
+          - key: src.Http.Router.php
+            path: src/Http/Router.php
+          - key: src.Repository.ProductRepository.php
+            path: src/Repository/ProductRepository.php
+          - key: src.View.Renderer.php
+            path: src/View/Renderer.php
+          - key: templates.products.php
+            path: templates/products.php
+          - key: data.products.json
+            path: data/products.json
+      - name: config
+        configMap:
+          name: php-bench-v2-ephpm
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ephpm-v2
+  namespace: php-bench
+spec:
+  selector:
+    app: ephpm-v2
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k6-v2-script
+  namespace: php-bench
+data:
+  v2.js: |
+    import http from 'k6/http';
+    import { check } from 'k6';
+    import { Trend } from 'k6/metrics';
+
+    const appElapsed = new Trend('app_elapsed', true);
+
+    export const options = {
+      scenarios: {
+        fixed_rate: {
+          executor: 'constant-arrival-rate',
+          rate: Number(__ENV.RATE || 40),
+          timeUnit: '1s',
+          duration: __ENV.DURATION || '45s',
+          preAllocatedVUs: Number(__ENV.PREALLOCATED_VUS || 12),
+          maxVUs: Number(__ENV.MAX_VUS || 24),
+        },
+      },
+      thresholds: {
+        http_req_failed: ['rate<0.01'],
+      },
+    };
+
+    const target = __ENV.TARGET;
+
+    const cases = [
+      '/products?q=waterproof&sort=score',
+      '/products?category=electronics&sort=price',
+      '/api/products?q=12v&max_price=200',
+      '/api/product?id=8',
+    ];
+
+    export default function () {
+      const path = cases[(__ITER + __VU) % cases.length];
+      const res = http.get(`${target}${path}`);
+
+      check(res, {
+        'status is 200': (r) => r.status === 200,
+        'has server header': (r) => Boolean(r.headers['X-Server-Software']),
+      });
+
+      const elapsed = res.headers['X-App-Elapsed-Ns'];
+      if (elapsed) {
+        appElapsed.add(Number(elapsed) / 1000000);
+      }
+    }

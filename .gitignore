@@ -1,0 +1,35 @@
+# Local upstream checkouts used while reproducing the lab.
+# The public repo records exact commits and patches instead of vendoring clones.
+apps/
+
+# Generated manifests and temporary files.
+.generated/
+tmp/
+*.tmp
+
+# Local Kubernetes access and credentials.
+kubeconfig*
+*.kubeconfig
+config.yaml
+.kube/
+
+# Environment files may contain app keys, DB credentials, or local endpoints.
+.env
+.env.*
+!.env.example
+
+# OS/editor noise.
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Dependency/build outputs.
+vendor/
+node_modules/
+target/
+dist/
+build/
+

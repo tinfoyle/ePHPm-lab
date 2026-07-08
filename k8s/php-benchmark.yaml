@@ -1,0 +1,226 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: php-bench
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: php-bench-app
+  namespace: php-bench
+data:
+  index.php: |
+    <?php
+    header('Content-Type: application/json');
+
+    $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+    $started = hrtime(true);
+
+    if ($path === '/cpu.php') {
+        $hash = 'seed';
+        for ($i = 0; $i < 2000; $i++) {
+            $hash = hash('sha256', $hash . $i);
+        }
+        $payload = ['route' => 'cpu', 'hash' => substr($hash, 0, 16)];
+    } elseif ($path === '/json.php') {
+        $items = [];
+        for ($i = 0; $i < 100; $i++) {
+            $items[] = ['id' => $i, 'name' => 'bench-' . $i, 'active' => ($i % 3) === 0];
+        }
+        $payload = ['route' => 'json', 'items' => json_decode(json_encode($items), true)];
+    } else {
+        $payload = ['route' => 'hello', 'message' => 'ok'];
+    }
+
+    $payload['php_version'] = PHP_VERSION;
+    $payload['server'] = $_SERVER['SERVER_SOFTWARE'] ?? 'unknown';
+    $payload['elapsed_ns'] = hrtime(true) - $started;
+
+    echo json_encode($payload);
+  hello.php: |
+    <?php require __DIR__ . '/index.php';
+  cpu.php: |
+    <?php require __DIR__ . '/index.php';
+  json.php: |
+    <?php require __DIR__ . '/index.php';
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: php-bench-nginx
+  namespace: php-bench
+data:
+  default.conf: |
+    server {
+      listen 8080;
+      server_name _;
+      root /var/www/html;
+      index index.php;
+
+      location / {
+        try_files $uri /index.php?$query_string;
+      }
+
+      location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param SCRIPT_NAME $fastcgi_script_name;
+        fastcgi_pass 127.0.0.1:9000;
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php-fpm-nginx
+  namespace: php-bench
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: php-fpm-nginx
+  template:
+    metadata:
+      labels:
+        app: php-fpm-nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.27-alpine
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 25m
+            memory: 32Mi
+          limits:
+            cpu: 50m
+            memory: 64Mi
+        volumeMounts:
+        - name: app
+          mountPath: /var/www/html
+          readOnly: true
+        - name: nginx-conf
+          mountPath: /etc/nginx/conf.d
+          readOnly: true
+      - name: php-fpm
+        image: php:8.4-fpm-alpine
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        volumeMounts:
+        - name: app
+          mountPath: /var/www/html
+          readOnly: true
+      volumes:
+      - name: app
+        configMap:
+          name: php-bench-app
+      - name: nginx-conf
+        configMap:
+          name: php-bench-nginx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: php-fpm-nginx
+  namespace: php-bench
+spec:
+  selector:
+    app: php-fpm-nginx
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ephpm
+  namespace: php-bench
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ephpm
+  template:
+    metadata:
+      labels:
+        app: ephpm
+    spec:
+      containers:
+      - name: ephpm
+        image: ephpm/ephpm:8.4
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 125m
+            memory: 160Mi
+          limits:
+            cpu: 250m
+            memory: 320Mi
+        volumeMounts:
+        - name: app
+          mountPath: /var/www/html
+          readOnly: true
+      volumes:
+      - name: app
+        configMap:
+          name: php-bench-app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ephpm
+  namespace: php-bench
+spec:
+  selector:
+    app: ephpm
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k6-script
+  namespace: php-bench
+data:
+  bench.js: |
+    import http from 'k6/http';
+    import { check, sleep } from 'k6';
+
+    export const options = {
+      discardResponseBodies: true,
+      scenarios: {
+        gentle: {
+          executor: 'ramping-vus',
+          stages: [
+            { duration: '15s', target: 3 },
+            { duration: '45s', target: 6 },
+            { duration: '15s', target: 0 },
+          ],
+          gracefulRampDown: '10s',
+        },
+      },
+      thresholds: {
+        http_req_failed: ['rate<0.01'],
+      },
+    };
+
+    const target = __ENV.TARGET;
+    const route = __ENV.ROUTE || '/hello.php';
+
+    export default function () {
+      const res = http.get(`${target}${route}`);
+      check(res, {
+        'status is 200': (r) => r.status === 200,
+      });
+      sleep(0.2);
+    }

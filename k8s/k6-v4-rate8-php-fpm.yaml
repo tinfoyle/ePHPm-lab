@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-v4-rate8-php-fpm
+  namespace: laravel-v4
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: grafana/k6:0.53.0
+          env:
+            - name: BASE_URL
+              value: http://laravel-v4-php-fpm:8080
+          command: ["sh", "/scripts/run-k6.sh"]
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+          resources:
+            requests:
+              cpu: 200m
+              memory: 128Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+      volumes:
+        - name: scripts
+          configMap:
+            name: k6-v4-rate8-script
+            defaultMode: 0755

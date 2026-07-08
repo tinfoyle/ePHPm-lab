@@ -1,0 +1,101 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-v4-php-fpm
+  namespace: laravel-v4
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: grafana/k6:0.53.0
+          env:
+            - name: BASE_URL
+              value: http://laravel-v4-php-fpm:8080
+          command: ["sh", "/scripts/run-k6.sh"]
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+      volumes:
+        - name: scripts
+          configMap:
+            name: k6-v4-script
+            defaultMode: 0755
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k6-v4-script
+  namespace: laravel-v4
+data:
+  run-k6.sh: |
+    #!/bin/sh
+    set -eu
+    cat > /tmp/laravel-v4.js <<'JS'
+    import http from 'k6/http';
+    import { check, sleep } from 'k6';
+    import { Trend, Rate } from 'k6/metrics';
+
+    export const options = {
+      scenarios: {
+        mixed: {
+          executor: 'constant-arrival-rate',
+          rate: 20,
+          timeUnit: '1s',
+          duration: '75s',
+          preAllocatedVUs: 12,
+          maxVUs: 40,
+        },
+      },
+      thresholds: { http_req_failed: ['rate<0.01'] },
+    };
+
+    const base = __ENV.BASE_URL;
+    const headers = { Host: 'laravel-v4.local' };
+    const ok = new Rate('laravel_v4_ok');
+    const bootstrap = new Trend('bootstrap_ms');
+    const dashboard = new Trend('dashboard_ms');
+    const cache = new Trend('cache_summary_ms');
+    const counter = new Trend('counter_ms');
+
+    export function setup() {
+      http.get(`${base}/api/cache-reset`, { headers });
+      for (let i = 1; i <= 10; i++) {
+        http.get(`${base}/api/cache-summary?group=${i}`, { headers });
+      }
+    }
+
+    export default function () {
+      const group = (__ITER % 10) + 1;
+      const choice = __ITER % 10;
+      let res;
+
+      if (choice < 2) {
+        res = http.get(`${base}/api/bootstrap?group=${group}`, { headers });
+        bootstrap.add(res.timings.duration);
+      } else if (choice < 4) {
+        res = http.get(`${base}/dashboard?group=${group}`, { headers });
+        dashboard.add(res.timings.duration);
+      } else if (choice < 8) {
+        res = http.get(`${base}/api/cache-summary?group=${group}`, { headers });
+        cache.add(res.timings.duration);
+      } else {
+        res = http.get(`${base}/api/counter?bucket=${group}`, { headers });
+        counter.add(res.timings.duration);
+      }
+
+      const passed = check(res, { 'status 200': (r) => r.status === 200 });
+      ok.add(passed);
+      sleep(0.02);
+    }
+    JS
+    k6 run --summary-trend-stats "avg,min,med,p(90),p(95),p(99),max" /tmp/laravel-v4.js

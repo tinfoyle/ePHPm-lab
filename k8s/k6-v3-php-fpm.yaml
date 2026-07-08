@@ -1,0 +1,119 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-v3-php-fpm
+  namespace: krayin-bench
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: grafana/k6:0.53.0
+          env:
+            - name: BASE_URL
+              value: http://krayin-php-fpm:8080
+          command:
+            - sh
+            - -lc
+            - |
+              cat > /tmp/krayin.js <<'JS'
+              import http from 'k6/http';
+              import { check, sleep } from 'k6';
+              import { Trend, Rate } from 'k6/metrics';
+
+              export const options = {
+                scenarios: {
+                  gentle: {
+                    executor: 'constant-arrival-rate',
+                    rate: 8,
+                    timeUnit: '1s',
+                    duration: '75s',
+                    preAllocatedVUs: 8,
+                    maxVUs: 16,
+                  },
+                },
+                thresholds: {
+                  http_req_failed: ['rate<0.01'],
+                },
+              };
+
+              const base = __ENV.BASE_URL;
+              const headers = { Host: 'krayin.local' };
+              const app = new Trend('app_response_ms');
+              const ok = new Rate('krayin_ok');
+
+              function csrf(html) {
+                const token = html.match(/name="_token"\s+value="([^"]+)"/);
+                return token && token[1];
+              }
+
+              export function setup() {
+                const jar = http.cookieJar();
+                const loginPage = http.get(`${base}/admin/login`, { headers });
+                const token = csrf(loginPage.body);
+                check(loginPage, {
+                  'login page 200': (r) => r.status === 200,
+                  'csrf found': () => !!token,
+                });
+
+                const login = http.post(`${base}/admin/login`, {
+                  _token: token,
+                  email: 'admin@example.com',
+                  password: 'admin123',
+                }, {
+                  headers: { ...headers, 'Content-Type': 'application/x-www-form-urlencoded' },
+                  redirects: 0,
+                });
+
+                check(login, {
+                  'login redirects': (r) => r.status >= 302 && r.status < 400,
+                });
+
+                return { cookies: jar.cookiesForURL(base) };
+              }
+
+              export default function (data) {
+                const jar = http.cookieJar();
+                for (const [name, vals] of Object.entries(data.cookies)) {
+                  jar.set(base, name, vals[0]);
+                }
+
+                const paths = [
+                  '/admin/dashboard',
+                  '/admin/dashboard/stats?type=over-all',
+                  '/admin/leads',
+                  '/admin/leads/get',
+                  '/admin/contacts/persons',
+                  '/admin/products',
+                  '/admin/settings/users',
+                  '/admin/quotes',
+                ];
+
+                const path = paths[__ITER % paths.length];
+                const res = http.get(`${base}${path}`, {
+                  headers: {
+                    ...headers,
+                    'X-Requested-With': path.includes('/stats') || path.endsWith('/get') ? 'XMLHttpRequest' : '',
+                    Accept: path.includes('/stats') || path.endsWith('/get') ? 'application/json' : 'text/html,application/xhtml+xml',
+                  },
+                });
+
+                const passed = check(res, {
+                  'status ok': (r) => r.status === 200,
+                  'not login page': (r) => !String(r.url).includes('/admin/login'),
+                });
+                ok.add(passed);
+                app.add(res.timings.duration);
+                sleep(0.1);
+              }
+              JS
+              k6 run --summary-trend-stats "avg,min,med,p(90),p(95),p(99),max" /tmp/krayin.js
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi

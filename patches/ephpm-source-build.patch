@@ -1,0 +1,103 @@
+diff --git a/crates/ephpm-php/build.rs b/crates/ephpm-php/build.rs
+index 70fc3d8..27f552a 100644
+--- a/crates/ephpm-php/build.rs
++++ b/crates/ephpm-php/build.rs
+@@ -31,6 +31,7 @@ fn main() {
+ 
+     link_php(&lib_dir, &target_os);
+     compile_wrapper(&include_dir, &target_os);
++    compile_resolver_compat(&target_os);
+     generate_bindings(&include_dir, &target_os);
+ 
+     // Note: --wrap flags for zend_signal_* are in the binary crate's
+@@ -336,6 +337,16 @@ fn compile_wrapper(include_dir: &Path, target_os: &str) {
+     build.compile("ephpm_wrapper");
+ }
+ 
++fn compile_resolver_compat(target_os: &str) {
++    if target_os != "linux" {
++        return;
++    }
++
++    cc::Build::new()
++        .file("resolver_compat.c")
++        .compile("ephpm_resolver_compat");
++}
++
+ /// Generate Rust FFI bindings from PHP headers via bindgen.
+ fn generate_bindings(include_dir: &Path, target_os: &str) {
+     let target_env = env::var("CARGO_CFG_TARGET_ENV").unwrap_or_default();
+diff --git a/crates/ephpm-php/resolver_compat.c b/crates/ephpm-php/resolver_compat.c
+new file mode 100644
+index 0000000..96fd6fa
+--- /dev/null
++++ b/crates/ephpm-php/resolver_compat.c
+@@ -0,0 +1,16 @@
++#define _GNU_SOURCE
++#include <resolv.h>
++
++int __dn_expand(const unsigned char *msg, const unsigned char *eomorig,
++                const unsigned char *comp_dn, char *exp_dn, int length) {
++    return dn_expand(msg, eomorig, comp_dn, exp_dn, length);
++}
++
++int __dn_skipname(const unsigned char *ptr, const unsigned char *eom) {
++    return dn_skipname(ptr, eom);
++}
++
++int __res_nsearch(res_state statp, const char *dname, int class, int type,
++                  unsigned char *answer, int anslen) {
++    return res_nsearch(statp, dname, class, type, answer, anslen);
++}
+diff --git a/crates/ephpm/build.rs b/crates/ephpm/build.rs
+index eda57d1..909f51e 100644
+--- a/crates/ephpm/build.rs
++++ b/crates/ephpm/build.rs
+@@ -145,6 +145,13 @@ fn main() {
+     }
+     println!("cargo::rustc-link-arg=-Wl,--end-group");
+     println!("cargo::rustc-link-arg=-Wl,-Bdynamic");
++    // GNU ld resolves libraries left-to-right. ephpm-php emits system libs as
++    // library-crate link directives, which rustc places before this binary
++    // crate's explicit PHP archive group. Re-emit the resolver/libc pair here
++    // after libphp.a so PHP's ext/standard/dns.o references are resolved on
++    // glibc builds, where these symbols may live in libc instead of libresolv.
++    println!("cargo::rustc-link-arg=-lresolv");
++    println!("cargo::rustc-link-arg=-lc");
+ 
+     // Export the binary's own symbols (the Zend/TSRM API baked in from
+     // libphp.a) into the dynamic symbol table. Shared PHP extensions loaded
+diff --git a/docker/Dockerfile b/docker/Dockerfile
+index 128c889..ca603d0 100644
+--- a/docker/Dockerfile
++++ b/docker/Dockerfile
+@@ -22,8 +22,12 @@ ARG PHP_SDK_VERSION=8.5.7
+ 
+ # ── Stage 1: base — system deps + Rust toolchain ─────────────────────────────
+ 
++ARG RUST_TOOLCHAIN=stable
++
+ FROM ubuntu:24.04 AS base
+ 
++ARG RUST_TOOLCHAIN
++
+ ENV DEBIAN_FRONTEND=noninteractive
+ 
+ # System tools needed by the ephpm Rust build:
+@@ -39,12 +43,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
+ 
+ ENV RUSTUP_HOME=/usr/local/rustup \
+     CARGO_HOME=/usr/local/cargo \
+-    PATH=/usr/local/cargo/bin:$PATH
++    PATH=/usr/local/cargo/bin:$PATH \
++    RUSTFLAGS="-C link-self-contained=no -C link-arg=-fuse-ld=bfd"
+ 
+ # The gnu target is the host default — no extra rustup target or cross
+ # toolchain needed (the musl-era CC_*/LINKER plumbing is gone with it).
+ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+-    | sh -s -- -y --default-toolchain stable --profile minimal
++    | sh -s -- -y --default-toolchain ${RUST_TOOLCHAIN} --profile minimal
+ 
+ # ── Stage 2: php-sdk — download prebuilt SDK ─────────────────────────────────
+ #
+

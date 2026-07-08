@@ -1,0 +1,757 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: laravel-v4
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: laravel-v4-scripts
+  namespace: laravel-v4
+data:
+  prepare-app.sh: |
+    #!/bin/sh
+    set -eu
+
+    mkdir -p /app
+    find /app -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+    cd /app
+
+    git config --global url."https://github.com/".insteadOf git@github.com:
+    composer config --global github-protocols https
+
+    composer create-project "laravel/laravel:^12.0" . --no-interaction --prefer-dist --no-progress
+    composer config repositories.ephpm-worker '{"type":"package","package":{"name":"ephpm/worker","version":"0.1.0","dist":{"url":"https://github.com/ephpm/php-worker/archive/refs/tags/v0.1.0.zip","type":"zip"},"source":{"url":"https://github.com/ephpm/php-worker.git","type":"git","reference":"v0.1.0"},"autoload":{"psr-4":{"Ephpm\\Worker\\":"src/"}},"require":{"php":"^8.2"}}}'
+    composer config repositories.ephpm-octane-driver '{"type":"package","package":{"name":"ephpm/octane-driver","version":"0.1.0","dist":{"url":"https://github.com/ephpm/octane-driver/archive/refs/tags/v0.1.0.zip","type":"zip"},"source":{"url":"https://github.com/ephpm/octane-driver.git","type":"git","reference":"v0.1.0"},"autoload":{"psr-4":{"Ephpm\\Octane\\":"src/"}},"bin":["bin/ephpm-octane-worker"],"require":{"php":"^8.2","ephpm/worker":"^0.1","laravel/octane":"^2.0","laravel/framework":"^10 || ^11 || ^12","symfony/http-foundation":"^6 || ^7"}}}'
+    composer require predis/predis laravel/octane ephpm/octane-driver:0.1.0 --with-all-dependencies --no-interaction --prefer-dist --no-progress
+    php -r '$file="vendor/ephpm/octane-driver/bin/ephpm-octane-worker"; $src=file_get_contents($file); $needle="    require \$autoload;\n\n    // --- 2. Fail fast if not under ePHPm worker mode."; $patch="    require \$autoload;\n    require_once __DIR__ . \"/../../worker/src/Runtime.php\";\n\n    // --- 2. Fail fast if not under ePHPm worker mode."; file_put_contents($file, str_replace($needle, $patch, $src));'
+
+    cat > .env <<'ENV'
+    APP_NAME=LaravelV4Bench
+    APP_ENV=production
+    APP_KEY=base64:3kD4a6u1l7S1QZQx8keYtLrE5RFlCM8TehzlOMJVpdU=
+    APP_DEBUG=false
+    APP_URL=http://laravel-v4.local
+    LOG_CHANNEL=stderr
+    LOG_LEVEL=warning
+    DB_CONNECTION=sqlite
+    DB_DATABASE=/var/www/html/storage/bench.sqlite
+    CACHE_STORE=array
+    SESSION_DRIVER=array
+    QUEUE_CONNECTION=sync
+    REDIS_HOST=laravel-v4-redis
+    REDIS_PORT=6379
+    CACHE_TARGET=redis_tcp
+    ENV
+
+    cat > routes/web.php <<'PHP'
+    <?php
+
+    use Illuminate\Http\Request;
+    use Illuminate\Support\Facades\DB;
+    use Illuminate\Support\Facades\Route;
+    use Predis\Client;
+
+    function bench_cache(): Client
+    {
+        static $client = null;
+
+        if ($client) {
+            return $client;
+        }
+
+        if (env('CACHE_TARGET') === 'ephpm_unix') {
+            return $client = new Client([
+                'scheme' => 'unix',
+                'path' => '/tmp/ephpm-kv.sock',
+            ]);
+        }
+
+        return $client = new Client([
+            'scheme' => 'tcp',
+            'host' => env('REDIS_HOST', 'laravel-v4-redis'),
+            'port' => (int) env('REDIS_PORT', 6379),
+        ]);
+    }
+
+    function bench_native_kv(): bool
+    {
+        return env('CACHE_TARGET') === 'ephpm_native'
+            && function_exists('ephpm_kv_get')
+            && function_exists('ephpm_kv_set')
+            && function_exists('ephpm_kv_incr');
+    }
+
+    function bench_cache_get(string $key): ?string
+    {
+        if (bench_native_kv()) {
+            return ephpm_kv_get($key);
+        }
+
+        return bench_cache()->get($key);
+    }
+
+    function bench_cache_setex(string $key, int $ttl, string $value): void
+    {
+        if (bench_native_kv()) {
+            ephpm_kv_set($key, $value);
+            ephpm_kv_expire($key, $ttl);
+            return;
+        }
+
+        bench_cache()->setex($key, $ttl, $value);
+    }
+
+    function bench_cache_del(string $key): void
+    {
+        if (bench_native_kv()) {
+            ephpm_kv_del($key);
+            return;
+        }
+
+        bench_cache()->del($key);
+    }
+
+    function bench_cache_incr(string $key): int
+    {
+        if (bench_native_kv()) {
+            return ephpm_kv_incr($key);
+        }
+
+        return bench_cache()->incr($key);
+    }
+
+    function bench_summary(int $group): array
+    {
+        $rows = DB::table('products')
+            ->selectRaw('category, count(*) as products, round(avg(price_cents)) as avg_price, sum(score) as score')
+            ->where('group_id', $group)
+            ->groupBy('category')
+            ->orderBy('category')
+            ->get();
+
+        $accounts = DB::table('accounts')
+            ->where('tier', $group % 4)
+            ->orderByDesc('balance_cents')
+            ->limit(20)
+            ->get();
+
+        return [
+            'group' => $group,
+            'rows' => $rows,
+            'accounts' => $accounts,
+            'checksum' => hash('sha256', json_encode([$rows, $accounts])),
+        ];
+    }
+
+    Route::get('/api/bootstrap', function (Request $request) {
+        $group = ((int) $request->query('group', 1) % 10) + 1;
+        $summary = bench_summary($group);
+
+        return response()->json([
+            'runtime' => env('RUNTIME_NAME', 'unknown'),
+            'group' => $group,
+            'category_count' => count($summary['rows']),
+            'account_count' => count($summary['accounts']),
+            'checksum' => $summary['checksum'],
+        ]);
+    });
+
+    Route::get('/api/cache-summary', function (Request $request) {
+        $group = ((int) $request->query('group', 1) % 10) + 1;
+        $key = 'summary:v4:'.$group;
+        $cached = bench_cache_get($key);
+
+        if ($cached !== null) {
+            return response($cached, 200, [
+                'Content-Type' => 'application/json',
+                'X-Cache' => 'HIT',
+            ]);
+        }
+
+        $payload = json_encode([
+            'runtime' => env('RUNTIME_NAME', 'unknown'),
+            'cached' => false,
+            'summary' => bench_summary($group),
+        ]);
+
+        bench_cache_setex($key, 60, $payload);
+
+        return response($payload, 200, [
+            'Content-Type' => 'application/json',
+            'X-Cache' => 'MISS',
+        ]);
+    });
+
+    Route::get('/api/cache-reset', function () {
+        for ($i = 1; $i <= 10; $i++) {
+            bench_cache_del('summary:v4:'.$i);
+        }
+
+        return response()->json(['reset' => true]);
+    });
+
+    Route::match(['GET', 'POST'], '/api/counter', function (Request $request) {
+        $bucket = 'counter:v4:'.((int) $request->query('bucket', 1) % 64);
+        $value = 0;
+
+        for ($i = 0; $i < 25; $i++) {
+            $value = bench_cache_incr($bucket);
+        }
+
+        return response()->json([
+            'runtime' => env('RUNTIME_NAME', 'unknown'),
+            'bucket' => $bucket,
+            'value' => $value,
+        ]);
+    });
+
+    Route::get('/dashboard', function (Request $request) {
+        $group = ((int) $request->query('group', 1) % 10) + 1;
+
+        return view('dashboard', [
+            'runtime' => env('RUNTIME_NAME', 'unknown'),
+            'summary' => bench_summary($group),
+        ]);
+    });
+    PHP
+
+    mkdir -p resources/views
+    cat > resources/views/dashboard.blade.php <<'BLADE'
+    <!doctype html>
+    <html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Laravel v4 Bench</title>
+    </head>
+    <body>
+        <h1>{{ $runtime }} dashboard</h1>
+        <p>{{ $summary['checksum'] }}</p>
+        <table>
+            <tbody>
+            @foreach ($summary['rows'] as $row)
+                <tr>
+                    <td>{{ $row->category }}</td>
+                    <td>{{ $row->products }}</td>
+                    <td>{{ $row->avg_price }}</td>
+                    <td>{{ $row->score }}</td>
+                </tr>
+            @endforeach
+            </tbody>
+        </table>
+        <ol>
+            @foreach ($summary['accounts'] as $account)
+                <li>{{ $account->name }} {{ $account->balance_cents }}</li>
+            @endforeach
+        </ol>
+    </body>
+    </html>
+    BLADE
+
+    mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache
+    chmod -R 777 storage bootstrap/cache
+  seed-db.php: |
+    <?php
+    $path = '/var/www/html/storage/bench.sqlite';
+    @mkdir(dirname($path), 0777, true);
+    if (file_exists($path)) {
+        unlink($path);
+    }
+
+    $db = new PDO('sqlite:'.$path);
+    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $db->exec('create table products (id integer primary key, group_id integer, category text, sku text, price_cents integer, score integer)');
+    $db->exec('create table accounts (id integer primary key, tier integer, name text, balance_cents integer)');
+
+    $product = $db->prepare('insert into products (group_id, category, sku, price_cents, score) values (?, ?, ?, ?, ?)');
+    $categories = ['hardware', 'software', 'services', 'training', 'support', 'security', 'analytics', 'storage'];
+    for ($i = 1; $i <= 2500; $i++) {
+        $product->execute([
+            ($i % 10) + 1,
+            $categories[$i % count($categories)],
+            'SKU-'.str_pad((string) $i, 5, '0', STR_PAD_LEFT),
+            1000 + (($i * 7919) % 250000),
+            ($i * 37) % 1000,
+        ]);
+    }
+
+    $account = $db->prepare('insert into accounts (tier, name, balance_cents) values (?, ?, ?)');
+    for ($i = 1; $i <= 500; $i++) {
+        $account->execute([
+            $i % 4,
+            'Account '.str_pad((string) $i, 4, '0', STR_PAD_LEFT),
+            5000 + (($i * 104729) % 9000000),
+        ]);
+    }
+  php-fpm-start.sh: |
+    #!/bin/sh
+    set -eu
+
+    apt-get update
+    apt-get install -y --no-install-recommends libzip-dev libsqlite3-dev
+    docker-php-ext-install -j"$(nproc)" pdo_sqlite zip opcache
+    rm -rf /var/lib/apt/lists/*
+
+    cat > /usr/local/etc/php/conf.d/laravel-v4.ini <<'INI'
+    memory_limit=512M
+    opcache.enable=1
+    opcache.enable_cli=0
+    opcache.validate_timestamps=0
+    opcache.jit=0
+    realpath_cache_size=4096K
+    realpath_cache_ttl=600
+    INI
+
+    cd /var/www/html
+    php /scripts/seed-db.php
+    php artisan config:clear
+    php artisan view:cache
+    chown -R www-data:www-data storage bootstrap/cache || true
+    exec php-fpm -F
+  ephpm-start.sh: |
+    #!/bin/sh
+    set -eu
+
+    cat > /tmp/laravel-v4.toml <<'TOML'
+    [server]
+    listen = "0.0.0.0:8080"
+    document_root = "/var/www/html/public"
+    index_files = ["index.php"]
+    fallback = ["$uri", "$uri/", "/index.php"]
+
+    [server.request]
+    max_body_size = 10485760
+    max_header_size = 8192
+    trusted_hosts = ["laravel-v4-ephpm", "laravel-v4-ephpm.laravel-v4", "laravel-v4.local", "localhost", "127.0.0.1"]
+
+    [server.response]
+    compression_min_size = 1024
+
+    [server.security]
+    blocked_paths = ["/vendor/*"]
+    open_basedir = false
+    disable_shell_exec = true
+
+    [php]
+    max_execution_time = 30
+    memory_limit = "512M"
+    ini_overrides = [
+      ["display_errors", "Off"],
+      ["error_reporting", "E_ALL"],
+      ["realpath_cache_size", "4096K"],
+      ["realpath_cache_ttl", "600"],
+    ]
+
+    [server.limits]
+    max_connections = 200
+    per_ip_rate = 1000.0
+    per_ip_burst = 200
+
+    [kv]
+    memory_limit = "128MB"
+    eviction_policy = "allkeys-lru"
+
+    [kv.redis_compat]
+    enabled = true
+    socket = "/tmp/ephpm-kv.sock"
+    TOML
+
+    cd /var/www/html
+    ephpm php /scripts/seed-db.php
+    exec ephpm serve --config /tmp/laravel-v4.toml
+  ephpm-worker-start.sh: |
+    #!/bin/sh
+    set -eu
+
+    cat > /tmp/laravel-v4-worker.toml <<'TOML'
+    [server]
+    listen = "0.0.0.0:8080"
+    document_root = "/var/www/html"
+
+    [server.request]
+    max_body_size = 10485760
+    max_header_size = 8192
+    trusted_hosts = ["laravel-v4-ephpm-worker", "laravel-v4-ephpm-worker.laravel-v4", "laravel-v4.local", "localhost", "127.0.0.1"]
+
+    [server.response]
+    compression_min_size = 1024
+
+    [server.security]
+    blocked_paths = ["/vendor/*"]
+    open_basedir = false
+    disable_shell_exec = true
+
+    [php]
+    mode = "worker"
+    worker_script = "vendor/bin/ephpm-octane-worker"
+    worker_count = 4
+    worker_max_requests = 500
+    worker_backlog = 128
+    worker_boot_timeout = 60
+    max_execution_time = 30
+    memory_limit = "512M"
+    ini_overrides = [
+      ["display_errors", "Off"],
+      ["error_reporting", "E_ALL"],
+      ["realpath_cache_size", "4096K"],
+      ["realpath_cache_ttl", "600"],
+    ]
+
+    [server.limits]
+    max_connections = 200
+    per_ip_rate = 1000.0
+    per_ip_burst = 200
+
+    [kv]
+    memory_limit = "128MB"
+    eviction_policy = "allkeys-lru"
+
+    [kv.redis_compat]
+    enabled = true
+    socket = "/tmp/ephpm-kv.sock"
+    TOML
+
+    cd /var/www/html
+    ephpm php /scripts/seed-db.php
+    export EPHPM_APP_BASE=/var/www/html
+    exec ephpm serve --config /tmp/laravel-v4-worker.toml
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: laravel-v4-nginx
+  namespace: laravel-v4
+data:
+  default.conf: |
+    server {
+      listen 8080;
+      server_name _;
+      root /var/www/html/public;
+      index index.php index.html;
+
+      location / {
+        try_files $uri $uri/ /index.php?$query_string;
+      }
+
+      location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        fastcgi_param DOCUMENT_ROOT $realpath_root;
+        fastcgi_pass 127.0.0.1:9000;
+      }
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: laravel-v4-redis
+  namespace: laravel-v4
+spec:
+  selector:
+    app: laravel-v4-redis
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laravel-v4-redis
+  namespace: laravel-v4
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: laravel-v4-redis
+  template:
+    metadata:
+      labels:
+        app: laravel-v4-redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7.4-alpine
+          ports:
+            - containerPort: 6379
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: laravel-v4-php-fpm
+  namespace: laravel-v4
+spec:
+  selector:
+    app: laravel-v4-php-fpm
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laravel-v4-php-fpm
+  namespace: laravel-v4
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: laravel-v4-php-fpm
+  template:
+    metadata:
+      labels:
+        app: laravel-v4-php-fpm
+    spec:
+      initContainers:
+        - name: prepare-app
+          image: composer:2
+          command: ["sh", "/scripts/prepare-app.sh"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 700m
+              memory: 1200Mi
+          volumeMounts:
+            - name: app
+              mountPath: /app
+            - name: scripts
+              mountPath: /scripts
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /api/bootstrap
+              port: 8080
+              httpHeaders:
+                - name: Host
+                  value: laravel-v4.local
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 40m
+              memory: 64Mi
+            limits:
+              cpu: 150m
+              memory: 128Mi
+          volumeMounts:
+            - name: app
+              mountPath: /var/www/html
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d
+        - name: php-fpm
+          image: php:8.4-fpm-bookworm
+          command: ["sh", "/scripts/php-fpm-start.sh"]
+          env:
+            - name: RUNTIME_NAME
+              value: php-fpm-redis
+            - name: CACHE_TARGET
+              value: redis_tcp
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 700m
+              memory: 900Mi
+          volumeMounts:
+            - name: app
+              mountPath: /var/www/html
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: app
+          emptyDir: {}
+        - name: scripts
+          configMap:
+            name: laravel-v4-scripts
+            defaultMode: 0755
+        - name: nginx-config
+          configMap:
+            name: laravel-v4-nginx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: laravel-v4-ephpm-worker
+  namespace: laravel-v4
+spec:
+  selector:
+    app: laravel-v4-ephpm-worker
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laravel-v4-ephpm-worker
+  namespace: laravel-v4
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: laravel-v4-ephpm-worker
+  template:
+    metadata:
+      labels:
+        app: laravel-v4-ephpm-worker
+    spec:
+      initContainers:
+        - name: prepare-app
+          image: composer:2
+          command: ["sh", "/scripts/prepare-app.sh"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 700m
+              memory: 1200Mi
+          volumeMounts:
+            - name: app
+              mountPath: /app
+            - name: scripts
+              mountPath: /scripts
+      containers:
+        - name: ephpm-worker
+          image: REPLACE_WITH_YOUR_EPHPM_SOURCE_IMAGE
+          command: ["sh", "/scripts/ephpm-worker-start.sh"]
+          env:
+            - name: RUNTIME_NAME
+              value: ephpm-worker-kv
+            - name: CACHE_TARGET
+              value: ephpm_native
+            - name: EPHPM_APP_BASE
+              value: /var/www/html
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /api/bootstrap
+              port: 8080
+              httpHeaders:
+                - name: Host
+                  value: laravel-v4.local
+            initialDelaySeconds: 20
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 384Mi
+            limits:
+              cpu: 700m
+              memory: 1200Mi
+          volumeMounts:
+            - name: app
+              mountPath: /var/www/html
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: app
+          emptyDir: {}
+        - name: scripts
+          configMap:
+            name: laravel-v4-scripts
+            defaultMode: 0755
+        - name: nginx-config
+          configMap:
+            name: laravel-v4-nginx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: laravel-v4-ephpm
+  namespace: laravel-v4
+spec:
+  selector:
+    app: laravel-v4-ephpm
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laravel-v4-ephpm
+  namespace: laravel-v4
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: laravel-v4-ephpm
+  template:
+    metadata:
+      labels:
+        app: laravel-v4-ephpm
+    spec:
+      initContainers:
+        - name: prepare-app
+          image: composer:2
+          command: ["sh", "/scripts/prepare-app.sh"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 700m
+              memory: 900Mi
+          volumeMounts:
+            - name: app
+              mountPath: /app
+            - name: scripts
+              mountPath: /scripts
+      containers:
+        - name: ephpm
+          image: ephpm/ephpm:8.4
+          command: ["sh", "/scripts/ephpm-start.sh"]
+          env:
+            - name: RUNTIME_NAME
+              value: ephpm-kv
+            - name: CACHE_TARGET
+              value: ephpm_native
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /api/bootstrap
+              port: 8080
+              httpHeaders:
+                - name: Host
+                  value: laravel-v4.local
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 384Mi
+            limits:
+              cpu: 700m
+              memory: 1200Mi
+          volumeMounts:
+            - name: app
+              mountPath: /var/www/html
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: app
+          emptyDir: {}
+        - name: scripts
+          configMap:
+            name: laravel-v4-scripts
+            defaultMode: 0755

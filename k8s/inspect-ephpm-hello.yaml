@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: inspect-ephpm-hello
+  namespace: php-bench
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: k6
+        image: grafana/k6:latest
+        args: ["run", "-e", "TARGET=http://ephpm:8080", "-e", "ROUTE=/hello.php", "-e", "RATE=50", "-e", "DURATION=30s", "/scripts/inspect.js"]
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        volumeMounts:
+        - name: script
+          mountPath: /scripts
+          readOnly: true
+      volumes:
+      - name: script
+        configMap:
+          name: k6-inspect-script

@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k6-inspect-script
+  namespace: php-bench
+data:
+  inspect.js: |
+    import http from 'k6/http';
+    import { check } from 'k6';
+    import { Trend } from 'k6/metrics';
+
+    const appElapsedMs = new Trend('app_elapsed_ms', true);
+
+    export const options = {
+      scenarios: {
+        fixed_rate: {
+          executor: 'constant-arrival-rate',
+          rate: Number(__ENV.RATE || 50),
+          timeUnit: '1s',
+          duration: __ENV.DURATION || '30s',
+          preAllocatedVUs: Number(__ENV.PREALLOCATED_VUS || 8),
+          maxVUs: Number(__ENV.MAX_VUS || 16),
+        },
+      },
+      thresholds: {
+        http_req_failed: ['rate<0.01'],
+      },
+    };
+
+    const target = __ENV.TARGET;
+    const route = __ENV.ROUTE || '/hello.php';
+
+    export default function () {
+      const res = http.get(`${target}${route}`);
+      check(res, {
+        'status is 200': (r) => r.status === 200,
+      });
+
+      if (res.status === 200 && res.body) {
+        try {
+          const parsed = JSON.parse(res.body);
+          if (parsed.elapsed_ns) {
+            appElapsedMs.add(parsed.elapsed_ns / 1000000);
+          }
+        } catch (_) {
+          // Keep the benchmark running if a bad response sneaks in.
+        }
+      }
+    }

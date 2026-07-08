@@ -1,0 +1,492 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: krayin-bench
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: krayin-app-setup
+  namespace: krayin-bench
+data:
+  prepare-app.sh: |
+    #!/bin/sh
+    set -eu
+
+    mkdir -p /app
+    find /app -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+    cd /app
+
+    git init
+    git remote add origin https://github.com/krayin/laravel-crm.git
+    git fetch --depth 1 origin 7d426f901b18f043eb91e425c7bdd3e9cba568ab
+    git checkout --detach FETCH_HEAD
+
+    composer install \
+      --no-dev \
+      --prefer-dist \
+      --no-interaction \
+      --no-progress \
+      --ignore-platform-req=php \
+      --ignore-platform-req=ext-gd \
+      --ignore-platform-req=ext-calendar
+
+    mkdir -p app/Support
+    cat > app/Support/ephpm_mbregex_polyfill.php <<'PHP'
+    <?php
+
+    $_SERVER['PHP_SELF'] ??= $_SERVER['SCRIPT_NAME'] ?? 'artisan';
+
+    if (! function_exists('mb_split')) {
+        function mb_split(string $pattern, string $string, int $limit = -1): array|false
+        {
+            $pattern = str_replace('/', '\/', $pattern);
+
+            return preg_split('/'.$pattern.'/u', $string, $limit);
+        }
+    }
+    PHP
+
+    php -r '$composer = json_decode(file_get_contents("composer.json"), true); $composer["autoload"]["files"] = array_values(array_unique(array_merge($composer["autoload"]["files"] ?? [], ["app/Support/ephpm_mbregex_polyfill.php"]))); file_put_contents("composer.json", json_encode($composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES).PHP_EOL);'
+    composer dump-autoload --optimize --no-interaction
+
+    cat > .env <<'ENV'
+    APP_NAME=Krayin
+    APP_ENV=production
+    APP_KEY=base64:tk9saP3B7nnffMJxdX25MLmVqGg5YZ1AqFXyW8Aa5X4=
+    APP_DEBUG=false
+    APP_URL=http://krayin.local
+    APP_ADMIN_PATH=admin
+    APP_TIMEZONE=UTC
+    APP_LOCALE=en
+    APP_CURRENCY=USD
+
+    LOG_CHANNEL=stderr
+    LOG_LEVEL=warning
+
+    DB_CONNECTION=mysql
+    DB_HOST=krayin-mysql
+    DB_PORT=3306
+    DB_DATABASE=krayin
+    DB_USERNAME=krayin
+    DB_PASSWORD=krayin
+    DB_PREFIX=
+
+    CACHE_DRIVER=file
+    SESSION_DRIVER=file
+    QUEUE_CONNECTION=sync
+    BROADCAST_DRIVER=log
+    FILESYSTEM_DISK=local
+    MAIL_MAILER=log
+    ENV
+
+    mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache
+    touch storage/installed
+    chown -R 33:33 storage bootstrap/cache || true
+  php-fpm-start.sh: |
+    #!/bin/sh
+    set -eu
+
+    if ! php -m | grep -qi '^pdo_mysql$'; then
+      apt-get update
+      apt-get install -y --no-install-recommends \
+        libicu-dev libzip-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev libonig-dev
+      docker-php-ext-configure gd --with-freetype --with-jpeg
+      docker-php-ext-install -j"$(nproc)" pdo_mysql intl zip gd bcmath exif mbstring calendar
+      rm -rf /var/lib/apt/lists/*
+    fi
+
+    cat > /usr/local/etc/php/conf.d/krayin-bench.ini <<'INI'
+    memory_limit=384M
+    opcache.enable=1
+    opcache.enable_cli=0
+    opcache.validate_timestamps=0
+    opcache.jit=0
+    realpath_cache_size=4096K
+    realpath_cache_ttl=600
+    INI
+
+    cd /var/www/html
+    chown -R www-data:www-data storage bootstrap/cache || true
+    exec php-fpm -F
+  ephpm-start.sh: |
+    #!/bin/sh
+    set -eu
+
+    cat > /tmp/krayin-ephpm.toml <<'TOML'
+    [server]
+    listen = "0.0.0.0:8080"
+    document_root = "/var/www/html/public"
+    index_files = ["index.php"]
+    fallback = ["$uri", "$uri/", "/index.php"]
+
+    [server.request]
+    max_body_size = 10485760
+    max_header_size = 8192
+    trusted_hosts = ["krayin-ephpm", "krayin-ephpm.krayin-bench", "krayin.local", "localhost", "127.0.0.1"]
+
+    [server.response]
+    compression_min_size = 1024
+
+    [server.static]
+    cache_control = "public, max-age=3600"
+
+    [server.security]
+    blocked_paths = ["/vendor/*"]
+    open_basedir = false
+    disable_shell_exec = true
+
+    [php]
+    max_execution_time = 30
+    memory_limit = "384M"
+    ini_overrides = [
+      ["display_errors", "Off"],
+      ["error_reporting", "E_ALL"],
+      ["realpath_cache_size", "4096K"],
+      ["realpath_cache_ttl", "600"],
+    ]
+
+    [server.limits]
+    max_connections = 100
+    per_ip_rate = 500.0
+    per_ip_burst = 100
+    TOML
+
+    cd /var/www/html
+    exec ephpm serve --config /tmp/krayin-ephpm.toml
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: krayin-nginx
+  namespace: krayin-bench
+data:
+  default.conf: |
+    server {
+      listen 8080;
+      server_name _;
+      root /var/www/html/public;
+      index index.php index.html;
+      client_max_body_size 10m;
+
+      location / {
+        try_files $uri $uri/ /index.php?$query_string;
+      }
+
+      location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        fastcgi_param DOCUMENT_ROOT $realpath_root;
+        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_read_timeout 60s;
+      }
+
+      location ~ /\.(?!well-known).* {
+        deny all;
+      }
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: krayin-mysql
+  namespace: krayin-bench
+spec:
+  selector:
+    app: krayin-mysql
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: 3306
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: krayin-mysql
+  namespace: krayin-bench
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: krayin-mysql
+  template:
+    metadata:
+      labels:
+        app: krayin-mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.4
+          env:
+            - name: MYSQL_DATABASE
+              value: krayin
+            - name: MYSQL_USER
+              value: krayin
+            - name: MYSQL_PASSWORD
+              value: krayin
+            - name: MYSQL_ROOT_PASSWORD
+              value: krayin-root
+          ports:
+            - containerPort: 3306
+          readinessProbe:
+            exec:
+              command: ["mysqladmin", "ping", "-h", "127.0.0.1", "-ukrayin", "-pkrayin"]
+            initialDelaySeconds: 15
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: 500m
+              memory: 768Mi
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql-data
+          emptyDir: {}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: krayin-install
+  namespace: krayin-bench
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      restartPolicy: Never
+      initContainers:
+        - name: prepare-app
+          image: composer:2
+          command: ["sh", "/scripts/prepare-app.sh"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 700m
+              memory: 768Mi
+          volumeMounts:
+            - name: app
+              mountPath: /app
+            - name: scripts
+              mountPath: /scripts
+      containers:
+        - name: install
+          image: php:8.4-cli-bookworm
+          command:
+            - sh
+            - -lc
+            - |
+              set -eu
+              apt-get update
+              apt-get install -y --no-install-recommends \
+                libicu-dev libzip-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev libonig-dev
+              docker-php-ext-configure gd --with-freetype --with-jpeg
+              docker-php-ext-install -j"$(nproc)" pdo_mysql intl zip gd bcmath exif mbstring calendar
+              rm -rf /var/lib/apt/lists/*
+
+              cd /app
+              until php -r 'new PDO("mysql:host=krayin-mysql;port=3306;dbname=krayin", "krayin", "krayin");'; do
+                sleep 3
+              done
+              php artisan migrate:fresh --force
+              php artisan tinker --execute='app(Webkul\Installer\Database\Seeders\DatabaseSeeder::class)->run(["locale" => "en", "currency" => "USD"]);'
+              php artisan vendor:publish --provider=Webkul\\Core\\Providers\\CoreServiceProvider --force || true
+              php artisan storage:link || true
+              php artisan tinker --execute='DB::table("users")->updateOrInsert(["id" => 1], ["name" => "Benchmark Admin", "email" => "admin@example.com", "password" => password_hash("admin123", PASSWORD_BCRYPT, ["cost" => 10]), "role_id" => 1, "status" => 1, "created_at" => now(), "updated_at" => now()]);'
+              touch storage/installed
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 700m
+              memory: 768Mi
+          volumeMounts:
+            - name: app
+              mountPath: /app
+      volumes:
+        - name: app
+          emptyDir: {}
+        - name: scripts
+          configMap:
+            name: krayin-app-setup
+            defaultMode: 0755
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: krayin-php-fpm
+  namespace: krayin-bench
+spec:
+  selector:
+    app: krayin-php-fpm
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: krayin-php-fpm
+  namespace: krayin-bench
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: krayin-php-fpm
+  template:
+    metadata:
+      labels:
+        app: krayin-php-fpm
+    spec:
+      initContainers:
+        - name: prepare-app
+          image: composer:2
+          command: ["sh", "/scripts/prepare-app.sh"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 700m
+              memory: 768Mi
+          volumeMounts:
+            - name: app
+              mountPath: /app
+            - name: scripts
+              mountPath: /scripts
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /admin/login
+              port: 8080
+              httpHeaders:
+                - name: Host
+                  value: krayin.local
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 40m
+              memory: 64Mi
+            limits:
+              cpu: 150m
+              memory: 128Mi
+          volumeMounts:
+            - name: app
+              mountPath: /var/www/html
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d
+        - name: php-fpm
+          image: php:8.4-fpm-bookworm
+          command: ["sh", "/scripts/php-fpm-start.sh"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 700m
+              memory: 768Mi
+          volumeMounts:
+            - name: app
+              mountPath: /var/www/html
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: app
+          emptyDir: {}
+        - name: scripts
+          configMap:
+            name: krayin-app-setup
+            defaultMode: 0755
+        - name: nginx-config
+          configMap:
+            name: krayin-nginx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: krayin-ephpm
+  namespace: krayin-bench
+spec:
+  selector:
+    app: krayin-ephpm
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: krayin-ephpm
+  namespace: krayin-bench
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: krayin-ephpm
+  template:
+    metadata:
+      labels:
+        app: krayin-ephpm
+    spec:
+      initContainers:
+        - name: prepare-app
+          image: composer:2
+          command: ["sh", "/scripts/prepare-app.sh"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 700m
+              memory: 768Mi
+          volumeMounts:
+            - name: app
+              mountPath: /app
+            - name: scripts
+              mountPath: /scripts
+      containers:
+        - name: ephpm
+          image: ephpm/ephpm:8.4
+          command: ["sh", "/scripts/ephpm-start.sh"]
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /admin/login
+              port: 8080
+              httpHeaders:
+                - name: Host
+                  value: krayin.local
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 384Mi
+            limits:
+              cpu: 700m
+              memory: 768Mi
+          volumeMounts:
+            - name: app
+              mountPath: /var/www/html
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: app
+          emptyDir: {}
+        - name: scripts
+          configMap:
+            name: krayin-app-setup
+            defaultMode: 0755
