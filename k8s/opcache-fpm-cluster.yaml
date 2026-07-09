@@ -1,0 +1,185 @@
+# OPcache "cluster" control: nginx + php-fpm (production style).
+#
+# php-fpm has no cluster-wide OPcache invalidation. The real-world way to
+# bust the cache across multiple replicas when opcache.validate_timestamps=0
+# is a rolling restart of the Deployment. During that rollout, each new pod
+# serves its first N requests from a cold OPcache -> visible p95/p99 spike,
+# plus any in-flight requests to a terminating pod become failed requests.
+#
+# Uses the SAME seed-web fixture as opcache-cluster.yaml (30 include files
+# + bench.php) so the two runs are directly comparable.
+#
+# Namespace: piggy-backs on opcache-demo (defined in opcache-cluster.yaml).
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opcache-fpm-files
+  namespace: opcache-demo
+data:
+  # Same generator as opcache-cluster.yaml's seed-web.sh so both stacks
+  # serve identical PHP fixtures.
+  seed-web.sh: |
+    #!/bin/sh
+    set -eu
+    mkdir -p /web/inc
+    i=1
+    while [ $i -le 30 ]; do
+        n=$(printf '%02d' "$i")
+        cat > "/web/inc/inc_${n}.php" <<PHP
+    <?php
+    class Inc${n} {
+        public static function value(): int { return ${i} * 7919; }
+        public static function label(): string { return 'inc-${n}-' . self::value(); }
+    }
+    function inc_${n}_hash(string \$seed): string {
+        return hash('sha256', \$seed . Inc${n}::label());
+    }
+    PHP
+        i=$((i + 1))
+    done
+    cat > /web/bench.php <<'PHP'
+    <?php
+    header('Content-Type: application/json');
+    $checksum = 'seed';
+    for ($i = 1; $i <= 30; $i++) {
+        $n = sprintf('%02d', $i);
+        require_once __DIR__ . "/inc/inc_{$n}.php";
+        $fn = "inc_{$n}_hash";
+        $checksum = $fn($checksum);
+    }
+    echo json_encode([
+        'pod' => gethostname(),
+        'checksum' => $checksum,
+        'includes' => 30,
+    ]);
+    PHP
+  php-fpm-start.sh: |
+    #!/bin/sh
+    set -eu
+    apt-get update >/dev/null
+    apt-get install -y --no-install-recommends libzip-dev >/dev/null
+    docker-php-ext-install -j"$(nproc)" opcache >/dev/null 2>&1
+    rm -rf /var/lib/apt/lists/*
+    # Production-style OPcache: no timestamp stats -> the ONLY way to bust
+    # the cache is a process restart. Mirrors laravel-v4.yaml's ini.
+    cat > /usr/local/etc/php/conf.d/opcache.ini <<'INI'
+    memory_limit=256M
+    opcache.enable=1
+    opcache.enable_cli=0
+    opcache.validate_timestamps=0
+    opcache.jit=0
+    opcache.memory_consumption=128
+    opcache.max_accelerated_files=4000
+    realpath_cache_size=4096K
+    realpath_cache_ttl=600
+    INI
+    exec php-fpm -F
+  nginx.conf: |
+    server {
+      listen 8080;
+      server_name _;
+      root /web;
+      index bench.php;
+      location / {
+        try_files $uri $uri/ =404;
+      }
+      location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param DOCUMENT_ROOT $document_root;
+        fastcgi_pass 127.0.0.1:9000;
+      }
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opcache-fpm
+  namespace: opcache-demo
+spec:
+  selector:
+    app: opcache-fpm
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opcache-fpm
+  namespace: opcache-demo
+spec:
+  # 2 replicas = same fleet size as opcache-demo StatefulSet.
+  replicas: 2
+  selector:
+    matchLabels:
+      app: opcache-fpm
+  # Default strategy: RollingUpdate w/ maxUnavailable 25%, maxSurge 25%.
+  # That IS the real-world comparison - leave it alone.
+  template:
+    metadata:
+      labels:
+        app: opcache-fpm
+    spec:
+      initContainers:
+        - name: seed-web
+          image: busybox:1.36
+          command: ["sh", "/files/seed-web.sh"]
+          volumeMounts:
+            - name: files
+              mountPath: /files
+            - name: web
+              mountPath: /web
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /bench.php
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 40m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          volumeMounts:
+            - name: web
+              mountPath: /web
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d
+        - name: php-fpm
+          image: php:8.4-fpm-bookworm
+          command: ["sh", "/files/php-fpm-start.sh"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: web
+              mountPath: /web
+            - name: files
+              mountPath: /files
+      volumes:
+        - name: files
+          configMap:
+            name: opcache-fpm-files
+            defaultMode: 0755
+        - name: nginx-config
+          configMap:
+            name: opcache-fpm-files
+            items:
+              - key: nginx.conf
+                path: default.conf
+        - name: web
+          emptyDir: {}
