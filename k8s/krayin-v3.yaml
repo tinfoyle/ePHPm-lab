@@ -22,6 +22,10 @@ data:
     git fetch --depth 1 origin 7d426f901b18f043eb91e425c7bdd3e9cba568ab
     git checkout --detach FETCH_HEAD
 
+    git config --global --add url.https://github.com/.insteadOf git@github.com:
+    git config --global --add url.https://github.com/.insteadOf ssh://git@github.com/
+    composer config --global github-protocols https
+
     composer install \
       --no-dev \
       --prefer-dist \
@@ -30,6 +34,19 @@ data:
       --ignore-platform-req=php \
       --ignore-platform-req=ext-gd \
       --ignore-platform-req=ext-calendar
+
+    if [ "${INSTALL_EPHPM_WORKER:-0}" = "1" ]; then
+      composer config repositories.ephpm-worker '{"type":"vcs","url":"https://github.com/ephpm/php-worker.git","no-api":true}'
+      composer config repositories.ephpm-octane-driver '{"type":"vcs","url":"https://github.com/ephpm/octane-driver.git","no-api":true}'
+      composer require laravel/octane "ephpm/octane-driver:^0.1" \
+        --with-all-dependencies \
+        --no-interaction \
+        --prefer-dist \
+        --no-progress \
+        --ignore-platform-req=php \
+        --ignore-platform-req=ext-gd \
+        --ignore-platform-req=ext-calendar
+    fi
 
     mkdir -p app/Support
     cat > app/Support/ephpm_mbregex_polyfill.php <<'PHP'
@@ -154,6 +171,53 @@ data:
 
     cd /var/www/html
     exec ephpm serve --config /tmp/krayin-ephpm.toml
+  ephpm-worker-start.sh: |
+    #!/bin/sh
+    set -eu
+
+    cat > /tmp/krayin-ephpm-worker.toml <<'TOML'
+    [server]
+    listen = "0.0.0.0:8080"
+    document_root = "/var/www/html"
+
+    [server.request]
+    max_body_size = 10485760
+    max_header_size = 8192
+    trusted_hosts = ["krayin-ephpm-worker", "krayin-ephpm-worker.krayin-bench", "krayin.local", "localhost", "127.0.0.1"]
+
+    [server.response]
+    compression_min_size = 1024
+
+    [server.security]
+    blocked_paths = ["/vendor/*"]
+    open_basedir = false
+    disable_shell_exec = true
+
+    [php]
+    mode = "worker"
+    worker_script = "vendor/bin/ephpm-octane-worker"
+    worker_count = 4
+    worker_max_requests = 500
+    worker_backlog = 128
+    worker_boot_timeout = 90
+    max_execution_time = 30
+    memory_limit = "384M"
+    ini_overrides = [
+      ["display_errors", "Off"],
+      ["error_reporting", "E_ALL"],
+      ["realpath_cache_size", "4096K"],
+      ["realpath_cache_ttl", "600"],
+    ]
+
+    [server.limits]
+    max_connections = 100
+    per_ip_rate = 500.0
+    per_ip_burst = 100
+    TOML
+
+    cd /var/www/html
+    export EPHPM_APP_BASE=/var/www/html
+    exec ephpm serve --config /tmp/krayin-ephpm-worker.toml
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -467,9 +531,87 @@ spec:
           ports:
             - containerPort: 8080
           readinessProbe:
-            # Built-in readiness endpoint, exempt from trusted_hosts as of
-            # No Host-header workaround needed for raw-IP kubelet probes on
-            # current ePHPm images.
+            # Built-in readiness endpoint is exempt from trusted_hosts on
+            # current ePHPm images, so raw-IP kubelet probes work.
+            httpGet:
+              path: /_ephpm/ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 384Mi
+            limits:
+              cpu: 700m
+              memory: 768Mi
+          volumeMounts:
+            - name: app
+              mountPath: /var/www/html
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: app
+          emptyDir: {}
+        - name: scripts
+          configMap:
+            name: krayin-app-setup
+            defaultMode: 0755
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: krayin-ephpm-worker
+  namespace: krayin-bench
+spec:
+  selector:
+    app: krayin-ephpm-worker
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: krayin-ephpm-worker
+  namespace: krayin-bench
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: krayin-ephpm-worker
+  template:
+    metadata:
+      labels:
+        app: krayin-ephpm-worker
+    spec:
+      initContainers:
+        - name: prepare-app
+          image: composer:2
+          command: ["sh", "/scripts/prepare-app.sh"]
+          env:
+            - name: INSTALL_EPHPM_WORKER
+              value: "1"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 700m
+              memory: 768Mi
+          volumeMounts:
+            - name: app
+              mountPath: /app
+            - name: scripts
+              mountPath: /scripts
+      containers:
+        - name: ephpm-worker
+          image: ephpm/ephpm:v0.4.0-php8.4
+          command: ["sh", "/scripts/ephpm-worker-start.sh"]
+          ports:
+            - containerPort: 8080
+          readinessProbe:
             httpGet:
               path: /_ephpm/ready
               port: 8080

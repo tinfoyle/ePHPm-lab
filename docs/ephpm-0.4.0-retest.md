@@ -36,6 +36,7 @@ Before retesting v4, older v1/v2/Krayin deployments were scaled down to free CPU
 | v1 CPU | Small deterministic hash loop | ePHPm wins avg and p95 | 0.4.0 no longer looks worse on this toy route. |
 | v2 synthetic app | Front controller, autoload, templates, JSON fixtures | ePHPm wins avg and p95 | Current ePHPm looks solid on this synthetic app-shaped workload. |
 | v3 Krayin | Real Laravel CRM in normal request mode | PHP-FPM wins | ePHPm still does not win every framework app in request mode. |
+| v3b Krayin worker | Same Krayin path mix in ePHPm worker mode | ePHPm worker improves substantially | Worker mode changes the Krayin story, but this needs a full three-way rerun. |
 | v4 Laravel request mode | Synthetic Laravel app, cache-heavy routes | ePHPm slightly wins overall | Request mode is competitive here, but not the main story. |
 | v4 Laravel worker/native KV | Persistent worker plus native ePHPm KV | ePHPm wins clearly | This remains the strongest ePHPm shape. |
 | v4 rate-160 | Medium-traffic pressure run | ePHPm worker holds target rate; FPM drops heavily | Worker/native-KV architecture is the compelling result. |
@@ -76,6 +77,32 @@ Rate target: `8 iterations/s` for `75s`.
 Interpretation: Krayin still favors PHP-FPM in this lab. Both stacks were functionally correct, but neither sustained the requested 8 rps cleanly on the small cluster. PHP-FPM completed more work with lower average, median, and p95 latency.
 
 This is the most important brake on overclaiming. ePHPm 0.4.0 is improved, but arbitrary Laravel applications in normal request mode should still be tested before making a runtime switch.
+
+## v3b: Krayin CRM Worker Mode
+
+After the request-mode Krayin result, we added a separate ePHPm worker-mode Krayin deployment:
+
+```text
+k6 -> Service -> ePHPm worker -> Krayin / Laravel Octane bridge -> MySQL
+```
+
+The worker deployment installs `laravel/octane` and `ephpm/octane-driver`, then starts ePHPm with:
+
+```text
+mode = "worker"
+worker_script = "vendor/bin/ephpm-octane-worker"
+worker_count = 4
+```
+
+Rate target: `8 iterations/s` for `75s`.
+
+| Runtime | Requests | Completed iterations | Dropped iterations | Failures | HTTP avg | HTTP median | HTTP p95 | HTTP p99 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| ePHPm 0.4.0 worker mode | 545 | 543 | 58 | 0 | 1.31 s | 1.11 s | 2.67 s | 3.37 s |
+
+Interpretation: this is a meaningful improvement over the request-mode ePHPm Krayin result. The request-mode ePHPm run completed 341 iterations with 260 dropped iterations, 3.19 s average latency, and 5.29 s p95. The worker-mode run completed 543 iterations with 58 dropped iterations, 1.31 s average latency, and 2.67 s p95.
+
+Important caveat: this v3b run was performed after scaling the non-target Krayin app deployments down to fit the tiny LKE cluster cleanly. It proves the Krayin worker shape is viable and promising, but the next fair step is a controlled three-way rerun where PHP-FPM, ePHPm request mode, and ePHPm worker mode are each tested sequentially under the same cluster conditions.
 
 ## v4: Laravel Cache-Heavy App
 
@@ -132,9 +159,9 @@ The current 0.4.0 pass sharpened the story, but it also exposed the next gaps:
 | Larger nodes | The Krayin test was constrained enough that both runtimes dropped iterations. |
 | Metrics API | CPU and memory data are needed to explain whether latency comes from CPU saturation, memory pressure, process overhead, or Redis/TCP overhead. |
 | Redis extension baseline | PHP-FPM should be retested with `phpredis`, not only Predis/TCP. |
+| Full Krayin three-way rerun | v3b shows worker mode is promising, but PHP-FPM, request mode, and worker mode should be retested sequentially under the same cluster conditions. |
 | Longer runs | Persistent workers need 10-30 minute soak tests to catch leak/drift behavior. |
 | Multiple worker counts | The ePHPm worker pool may have a different sweet spot than this first configuration. |
 | WordPress and Drupal | CMS/plugin behavior is where many real PHP operators live. |
 | Symfony and Laravel Octane alternatives | ePHPm should be compared with other persistent-worker runtimes too, not only PHP-FPM. |
 | Restart/failure behavior | Production confidence depends on deploys, crashes, stale state, and recovery, not just latency. |
-

@@ -35,7 +35,8 @@ PHP-FPM remains the safest default for arbitrary PHP applications, legacy/plugin
 | Cache-heavy app that can use native ePHPm KV | Yes, indirectly | Strong ePHPm case | Best v4 result came from avoiding Redis/Predis/TCP on hot paths. |
 | Plain PHP micro endpoints | Yes | ePHPm 0.4.0 competitive/winning in this lab | Still too tiny to be the main value proposition. |
 | Synthetic app-shaped PHP | Yes | ePHPm 0.4.0 wins | Useful signal, but still not a real app. |
-| Traditional Laravel in normal request mode | Yes | Mixed | The synthetic Laravel v4 request-mode test was competitive for ePHPm; Krayin still favored PHP-FPM. |
+| Traditional Laravel in normal request mode | Yes | Mixed | The synthetic Laravel v4 request-mode test was competitive for ePHPm; Krayin request mode still favored PHP-FPM. |
+| Real Laravel app adapted to ePHPm worker mode | Yes, early v3b | Promising | Krayin worker mode ran successfully and improved over Krayin ePHPm request mode, but needs a full three-way rerun. |
 | WordPress | Not yet | Open | Important future target: plugins, OPcache, object cache, and normal PHP assumptions. |
 | Drupal | Not yet | Open | Good CMS-heavy target with meaningful bootstrap/cache behavior. |
 | Symfony | Not yet | Open | Especially interesting in worker-style serving. |
@@ -57,6 +58,7 @@ ephpm/ephpm:v0.4.0-php8.4
 | v1 | Tiny PHP hello and CPU routes | ePHPm won avg latency on both; PHP-FPM had better hello p95 | Useful sanity check, not a real workload. |
 | v2 | Synthetic front-controller app | ePHPm won avg and p95 | ePHPm 0.4.0 looks materially better than the early run here. |
 | v3 | Krayin CRM in normal request mode | PHP-FPM won | Real apps still need direct validation; request mode is not a universal win. |
+| v3b | Krayin CRM in ePHPm worker mode | ePHPm worker completed 543 iterations with 58 drops | Worker mode changes the Krayin story; next step is a fair sequential three-way rerun. |
 | v4 | Laravel cache-heavy app at 20 rps | ePHPm worker won; request mode was competitive | Native KV and worker mode are where ePHPm gets interesting. |
 | v4 rate-160 | Same Laravel app under pressure | ePHPm worker held 159.27 iterations/s; PHP-FPM completed 100.02/s | Strongest current ePHPm result in this repo. |
 
@@ -138,6 +140,7 @@ The goal is for this repo to become a practical lookup table for real PHP applic
 | Symfony demo/API app | Good framework comparison, especially with a worker-style model. |
 | Laravel Octane / Swoole / RoadRunner / ePHPm | ePHPm should be compared against other persistent-worker PHP runtimes, not only PHP-FPM. |
 | PHP-FPM with `phpredis` instead of Predis | Strengthens the PHP-FPM cache baseline. |
+| Krayin three-way rerun | Compare PHP-FPM, ePHPm request mode, and ePHPm worker mode sequentially under the same cluster conditions. |
 | Larger nodes | The original LKE nodes were small; bigger nodes would show whether the shape holds with more CPU and memory headroom. |
 | Metrics API installed for CPU/memory | Latency without CPU/memory data is incomplete. |
 | Sustained 10-30 minute runs | Persistent workers need soak testing for leaks, drift, and tail behavior. |
@@ -263,6 +266,34 @@ kubectl logs job/k6-v4-rate8-php-fpm -n laravel-v4
 ```
 
 Do not run the two rate-8 jobs concurrently if you want a fair side-by-side comparison.
+
+## Reproduce The Krayin v3b Worker Test
+
+Deploy Krayin and keep only MySQL plus the worker target running on small clusters:
+
+```bash
+kubectl apply -f k8s/krayin-v3.yaml
+kubectl scale deployment/krayin-php-fpm deployment/krayin-ephpm -n krayin-bench --replicas=0
+kubectl rollout status deployment/krayin-mysql -n krayin-bench --timeout=300s
+kubectl rollout status deployment/krayin-ephpm-worker -n krayin-bench --timeout=900s
+```
+
+If MySQL was recreated, rerun the install job:
+
+```bash
+kubectl delete job krayin-install -n krayin-bench --ignore-not-found
+kubectl apply -f k8s/krayin-v3.yaml
+kubectl wait --for=condition=complete job/krayin-install -n krayin-bench --timeout=900s
+```
+
+Run the worker benchmark:
+
+```bash
+kubectl delete job k6-v3b-ephpm-worker -n krayin-bench --ignore-not-found
+kubectl apply -f k8s/k6-v3b-ephpm-worker.yaml
+kubectl wait --for=condition=complete job/k6-v3b-ephpm-worker -n krayin-bench --timeout=300s
+kubectl logs job/k6-v3b-ephpm-worker -n krayin-bench
+```
 
 ## Historical Tests
 
