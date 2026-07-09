@@ -927,3 +927,215 @@ spec:
       - name: scripts
         configMap:
           name: bench-k6-script
+
+# ===========================================================================
+# CLASS B (continued) - ePHPm worker mode (persistent engine, boot-once)
+#
+# Tuned for the 250m CPU budget: worker_count=1 (the derived default of
+# 2+ workers measurably loses ~20% at this quota - thread contention costs
+# more than parallelism buys), deep backlog, recycling effectively off.
+# The worker script uses ePHPm's raw worker primitives (no Composer), so
+# the whole entry is self-contained in this ConfigMap.
+# ===========================================================================
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bench-ephpm-worker-app
+  namespace: runtimes-bench
+data:
+  ephpm.toml: |
+    [server]
+    listen = "0.0.0.0:8080"
+    document_root = "/var/www/html"
+
+    [server.request]
+    trusted_hosts = [
+      "bench-ephpm-worker",
+      "bench-ephpm-worker.runtimes-bench.svc",
+      "bench-ephpm-worker.runtimes-bench.svc.cluster.local",
+      "localhost",
+      "127.0.0.1"
+    ]
+
+    [server.metrics]
+    enabled = false
+
+    [php]
+    mode = "worker"
+    worker_script = "worker.php"
+    # 1 worker wins at a 250m quota (matches Swoole's worker_num=1 shape).
+    worker_count = 1
+    worker_backlog = 32
+    # Effectively disable recycling: the default 500 forces a worker reboot
+    # every ~0.25s at 2000 req/s and shows up as tail latency.
+    worker_max_requests = 1000000
+  worker.php: |
+    <?php
+    declare(strict_types=1);
+
+    // Boot-once section. The boot/request counters in /hello responses
+    // prove worker mode is active: "request" climbs across requests while
+    // "boot" stays constant. If every response shows request=1, you are
+    // accidentally measuring per-request (fpm) dispatch.
+    static $bootCount = 0;
+    $bootCount++;
+    $myBoot = $bootCount;
+    $requestCount = 0;
+    error_log("[worker] booted (boot #{$myBoot})");
+
+    while (($envelope = \Ephpm\Worker\take_request()) !== null) {
+        $requestCount++;
+
+        $server = $envelope->serverVars();
+        $uri    = $server['REQUEST_URI'] ?? '/';
+        $path   = $uri;
+        if (($qpos = strpos($path, '?')) !== false) {
+            $path = substr($path, 0, $qpos);
+        }
+
+        if ($path === '/hello') {
+            $body = json_encode([
+                'ok'      => true,
+                't'       => microtime(true),
+                'boot'    => $myBoot,
+                'request' => $requestCount,
+            ], JSON_UNESCAPED_SLASHES);
+            \Ephpm\Worker\send_response(
+                200,
+                ['Content-Type' => 'application/json'],
+                $body
+            );
+            continue;
+        }
+
+        if ($path === '/cpu') {
+            // Identical loop to the cpu.php fixture used by Class A.
+            $h = '';
+            for ($i = 0; $i < 5000; $i++) {
+                $h = hash('sha256', $h . $i);
+            }
+            \Ephpm\Worker\send_response(
+                200,
+                ['Content-Type' => 'application/json'],
+                json_encode(['h' => substr($h, 0, 16)])
+            );
+            continue;
+        }
+
+        \Ephpm\Worker\send_response(
+            404,
+            ['Content-Type' => 'text/plain'],
+            "not found\n"
+        );
+    }
+
+    error_log("[worker] loop ended (boot #{$myBoot}, served {$requestCount} requests)");
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bench-ephpm-worker
+  namespace: runtimes-bench
+  labels:
+    bench-class: b
+    runtime: ephpm-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bench-ephpm-worker
+  template:
+    metadata:
+      labels:
+        app: bench-ephpm-worker
+        bench-class: b
+        runtime: ephpm-worker
+    spec:
+      containers:
+      - name: ephpm
+        image: ephpm/ephpm:v0.4.0-php8.4
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 250m
+            memory: 320Mi
+          limits:
+            cpu: 250m
+            memory: 320Mi
+        readinessProbe:
+          httpGet:
+            path: /_ephpm/ready
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 3
+          failureThreshold: 10
+        volumeMounts:
+        - name: app
+          mountPath: /var/www/html/worker.php
+          subPath: worker.php
+          readOnly: true
+        - name: app
+          mountPath: /etc/ephpm/ephpm.toml
+          subPath: ephpm.toml
+          readOnly: true
+      volumes:
+      - name: app
+        configMap:
+          name: bench-ephpm-worker-app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bench-ephpm-worker
+  namespace: runtimes-bench
+spec:
+  selector:
+    app: bench-ephpm-worker
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-bench-ephpm-worker
+  namespace: runtimes-bench
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: k6
+        image: grafana/k6:0.53.0
+        args:
+        - run
+        - -e
+        - BASE_URL=http://bench-ephpm-worker:8080
+        - -e
+        - HELLO_PATH=/hello
+        - -e
+        - CPU_PATH=/cpu
+        - -e
+        - CONCURRENCY=16
+        - -e
+        - DURATION=30s
+        - /scripts/bench.js
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
+      volumes:
+      - name: scripts
+        configMap:
+          name: bench-k6-script

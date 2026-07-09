@@ -1,6 +1,8 @@
 # Five-Way PHP Runtime Comparison
 
-This benchmark compares five PHP runtimes under identical resource constraints
+This benchmark compares five PHP runtimes (six entries - ePHPm is measured
+in both its drop-in fpm mode and its persistent worker mode) under identical
+resource constraints
 (0.25 CPU / 320 Mi memory per pod) on a kind cluster with fixtures served from
 ConfigMaps. It addresses the "Octane/Swoole/RoadRunner/ePHPm comparison" item
 from the ePHPm-lab report's next-tests list.
@@ -14,6 +16,7 @@ from the ePHPm-lab report's next-tests list.
 | FrankenPHP | `dunglas/frankenphp:latest` | 8.5 ZTS, glibc (image default; see caveat) |
 | Swoole | `phpswoole/swoole:php8.4` | 8.4 NTS, glibc |
 | RoadRunner | `php:8.4-cli-alpine` + `ghcr.io/roadrunner-server/roadrunner:2024` | 8.4 NTS, musl (see caveat) |
+| ePHPm v0.4.0 worker mode | `ephpm/ephpm:v0.4.0-php8.4` (`[php] mode = "worker"`) | 8.4 ZTS, glibc |
 
 ## Class A vs Class B
 
@@ -34,6 +37,9 @@ requests via an event loop or message-passing protocol. Not drop-in replacements
 
 - Swoole (`Swoole\Http\Server`, ~20 lines of bootstrap)
 - RoadRunner (PSR-7 worker loop via spiral/roadrunner-http, ~35 lines)
+- ePHPm worker mode (raw `\Ephpm\Worker\take_request()` loop, ~50 lines, no
+  Composer dependencies - the same binary as the Class A entry, different
+  `[php] mode`)
 
 Benchmark paths: `/hello`, `/cpu`
 
@@ -64,6 +70,7 @@ results; they are not claims about production throughput.
 |---------|:---:|:---:|:---:|:---:|
 | Swoole php8.4 (1 worker) | 0.4 ms | 2.4 ms | 6539 | 206 |
 | RoadRunner php8.4 musl (1 worker) | 2.1 ms | 29.1 ms | 549 | 68 |
+| ePHPm worker mode (1 worker, tuned) | 0.9 ms | 7.7 ms | 2078 | 90 |
 
 ## Caveats
 
@@ -94,6 +101,17 @@ results; they are not claims about production throughput.
   bundles PHP 8.5 (ZTS). All other runtimes use PHP 8.4. Measured bare-loop
   speed of 8.5 vs 8.4 on this fixture is identical (1.08 vs 1.10 ms), so the
   skew is minor here.
+
+- **Worker count must match the CPU quota, not the node.** The ePHPm worker
+  entry pins `worker_count = 1` because a measured knob matrix at 250m CPU
+  showed 1 worker beating the derived default of 2 by ~20% (2100 vs 1690
+  req/s on hello c=16) and 4 workers doing no better than 2 - under a tight
+  cgroup quota, thread contention costs more than parallelism buys. It also
+  sets `worker_max_requests = 1000000`: the shipped default of 500 forces a
+  worker recycle every ~0.25 s at 2000 req/s. The `/hello` response includes
+  `boot`/`request` counters so you can verify worker mode is actually active
+  (climbing `request`, constant `boot`) instead of silently measuring
+  per-request dispatch.
 
 - **RoadRunner with 1 worker at 0.25 CPU is its worst case.** Its cpu deficit
   is mostly the musl base image (see above); the remainder is Go<->PHP IPC at

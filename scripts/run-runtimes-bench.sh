@@ -28,8 +28,8 @@ for arg in "$@"; do
   esac
 done
 
-K6_JOBS=(k6-bench-ephpm k6-bench-nginx-fpm k6-bench-frankenphp k6-bench-swoole k6-bench-rr)
-DEPLOYMENTS=(bench-ephpm bench-nginx-fpm bench-frankenphp bench-swoole bench-rr)
+K6_JOBS=(k6-bench-ephpm k6-bench-nginx-fpm k6-bench-frankenphp k6-bench-swoole k6-bench-rr k6-bench-ephpm-worker)
+DEPLOYMENTS=(bench-ephpm bench-nginx-fpm bench-frankenphp bench-swoole bench-rr bench-ephpm-worker)
 
 # ---------------------------------------------------------------------------
 # 1. Deploy the stack; purge any auto-started k6 Jobs immediately
@@ -50,7 +50,7 @@ for d in "${DEPLOYMENTS[@]}"; do
   echo "==> Waiting for deployment/${d} ..."
   "${KUBECTL}" rollout status "deployment/${d}" -n "${NS}" --timeout=300s
 done
-echo "==> All five deployments ready."
+echo "==> All deployments ready."
 
 # ---------------------------------------------------------------------------
 # 3. Run k6 Jobs sequentially
@@ -63,6 +63,7 @@ declare -A JOB_BASE_URL=(
   [k6-bench-frankenphp]="http://bench-frankenphp:8080"
   [k6-bench-swoole]="http://bench-swoole:8080"
   [k6-bench-rr]="http://bench-rr:8080"
+  [k6-bench-ephpm-worker]="http://bench-ephpm-worker:8080"
 )
 declare -A JOB_HELLO_PATH=(
   [k6-bench-ephpm]="/hello.php"
@@ -70,6 +71,7 @@ declare -A JOB_HELLO_PATH=(
   [k6-bench-frankenphp]="/hello.php"
   [k6-bench-swoole]="/hello"
   [k6-bench-rr]="/hello"
+  [k6-bench-ephpm-worker]="/hello"
 )
 declare -A JOB_CPU_PATH=(
   [k6-bench-ephpm]="/cpu.php"
@@ -77,6 +79,7 @@ declare -A JOB_CPU_PATH=(
   [k6-bench-frankenphp]="/cpu.php"
   [k6-bench-swoole]="/cpu"
   [k6-bench-rr]="/cpu"
+  [k6-bench-ephpm-worker]="/cpu"
 )
 
 for job in "${K6_JOBS[@]}"; do
