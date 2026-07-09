@@ -432,7 +432,9 @@ spec:
           readOnly: true
       # php-fpm main PHP executor
       - name: php-fpm
-        image: php:8.4-fpm-alpine
+        # Debian (glibc) image on purpose: musl's allocator runs allocation-heavy
+        # PHP loops ~3.4x slower than glibc, which unfairly handicaps the baseline.
+        image: php:8.4-fpm
         resources:
           requests:
             cpu: 200m

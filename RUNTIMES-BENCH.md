@@ -9,11 +9,11 @@ from the ePHPm-lab report's next-tests list.
 
 | Runtime | Image | PHP |
 |---------|-------|-----|
-| ePHPm v0.4.0 | `ephpm/ephpm:v0.4.0-php8.4` | 8.4 ZTS |
-| nginx + php-fpm | `nginx:1.27-alpine` + `php:8.4-fpm-alpine` | 8.4 |
-| FrankenPHP | `dunglas/frankenphp:latest` | 8.5 (image default; see caveat) |
-| Swoole | `phpswoole/swoole:php8.4` | 8.4 |
-| RoadRunner | `php:8.4-cli-alpine` + `ghcr.io/roadrunner-server/roadrunner:2024` | 8.4 |
+| ePHPm v0.4.0 | `ephpm/ephpm:v0.4.0-php8.4` | 8.4 ZTS, glibc |
+| nginx + php-fpm | `nginx:1.27-alpine` + `php:8.4-fpm` (Debian) | 8.4 NTS, glibc |
+| FrankenPHP | `dunglas/frankenphp:latest` | 8.5 ZTS, glibc (image default; see caveat) |
+| Swoole | `phpswoole/swoole:php8.4` | 8.4 NTS, glibc |
+| RoadRunner | `php:8.4-cli-alpine` + `ghcr.io/roadrunner-server/roadrunner:2024` | 8.4 NTS, musl (see caveat) |
 
 ## Class A vs Class B
 
@@ -44,16 +44,18 @@ Benchmark paths: `/hello`, `/cpu`
 
 ## Local Reference Numbers
 
-Measured on one developer machine with podman, 0.25 CPU / 320 Mi per container,
-`hey` keep-alive, best of 2 x 30 s runs. These numbers exist so you can sanity-
-check your cluster results; they are not claims about production throughput.
+Measured on one developer machine with podman, 0.25 CPU / 320 Mi **total per
+stack** (the nginx + php-fpm pair shares a single pod-level cgroup), `hey`
+keep-alive, best of 2 x 30 s runs, and every reported cell verified to be
+100% HTTP 200. These numbers exist so you can sanity-check your cluster
+results; they are not claims about production throughput.
 
 ### Class A
 
 | Runtime | hello c=1 avg | hello c=16 avg | hello c=16 RPS | cpu c=16 RPS |
 |---------|:---:|:---:|:---:|:---:|
-| ePHPm v0.4.0 php8.4 (ZTS) | 1.4 ms | 4.2 ms | 3807 | 82 |
-| nginx + php-fpm 8.4 (opcache+JIT) | 1.4 ms | 17.3 ms | 925 | 79 |
+| ePHPm v0.4.0 php8.4 (ZTS glibc) | 2.0 ms | 24.7 ms | 648 | 79 |
+| nginx + php-fpm 8.4 Debian (opcache+JIT, shared cgroup) | 2.2 ms | 28.0 ms | 572 | 151 |
 | FrankenPHP classic (php 8.5 ZTS) | 6.1 ms | 59.4 ms | 269 | 125 |
 
 ### Class B
@@ -61,19 +63,42 @@ check your cluster results; they are not claims about production throughput.
 | Runtime | hello c=1 avg | hello c=16 avg | hello c=16 RPS | cpu c=16 RPS |
 |---------|:---:|:---:|:---:|:---:|
 | Swoole php8.4 (1 worker) | 0.4 ms | 2.4 ms | 6539 | 206 |
-| RoadRunner php8.4 (1 worker) | 2.1 ms | 29.1 ms | 549 | 68 |
+| RoadRunner php8.4 musl (1 worker) | 2.1 ms | 29.1 ms | 549 | 68 |
 
 ## Caveats
 
-- **FrankenPHP ships PHP 8.5**, not 8.4. The `dunglas/frankenphp:latest` image
-  bundles PHP 8.5 (ZTS). All other runtimes use PHP 8.4. This is a minor
-  version difference; treat FrankenPHP numbers as indicative only when comparing
-  across classes.
+- **libc matters as much as the runtime.** Measured bare-loop cost of the cpu
+  fixture (50 in-process iterations, CLI): glibc NTS 1.10 ms, glibc ZTS 1.65 ms,
+  musl NTS 3.69 ms. Alpine (musl) PHP images run this allocation-heavy loop
+  ~3.4x slower than Debian (glibc) ones. The php-fpm baseline therefore uses
+  the Debian image; the RoadRunner image is still Alpine-based (see below), so
+  its cpu numbers carry a musl handicap.
 
-- **RoadRunner with 1 worker at 0.25 CPU is its worst case.** RoadRunner uses
-  IPC between the Go server and PHP workers; at 1 worker the IPC round-trip
-  dominates. Production RoadRunner typically runs `num_workers = nproc`. The
-  reference numbers reflect that IPC overhead, not RR's ceiling.
+- **If you benchmark the ePHPm image with its baked-in default config, you
+  will measure the rate limiter, not PHP.** The image's default
+  `/etc/ephpm/ephpm.toml` ships `per_ip_rate = 500`, and a single-IP load
+  generator gets clamped to 500 req/s of 200s with the rest served as 429s.
+  The manifest here mounts a clean config (no `[server.limits]`, which means
+  unlimited), so cluster runs are unaffected — but always check the status-code
+  distribution of any load-tool output before trusting a throughput number.
+
+- **Budget partitioning vs shared budget.** In Kubernetes, resource limits are
+  per-container, so the nginx + php-fpm pod partitions its budget
+  (50m nginx / 200m fpm) — a real constraint of multi-process stacks on k8s,
+  but one that can bottleneck whichever container is undersized for a given
+  workload. The local reference numbers instead used a shared 0.25-CPU cgroup
+  for the pair (podman pod), which is the most charitable configuration for
+  fpm. Single-process runtimes (ePHPm, FrankenPHP, Swoole) need no such choice.
+
+- **FrankenPHP ships PHP 8.5**, not 8.4. The `dunglas/frankenphp:latest` image
+  bundles PHP 8.5 (ZTS). All other runtimes use PHP 8.4. Measured bare-loop
+  speed of 8.5 vs 8.4 on this fixture is identical (1.08 vs 1.10 ms), so the
+  skew is minor here.
+
+- **RoadRunner with 1 worker at 0.25 CPU is its worst case.** Its cpu deficit
+  is mostly the musl base image (see above); the remainder is Go<->PHP IPC at
+  a single worker. Production RoadRunner typically runs `num_workers = nproc`.
+  The reference numbers reflect that handicap, not RR's ceiling.
 
 - **Swoole and RoadRunner are not drop-in.** They require a custom server
   bootstrap (Swoole, ~20 LoC) or PSR-7 worker loop (RoadRunner, ~35 LoC).
