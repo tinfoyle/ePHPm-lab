@@ -21,10 +21,12 @@ data:
     composer config --global github-protocols https
 
     composer create-project "laravel/laravel:^12.0" . --no-interaction --prefer-dist --no-progress
-    composer config repositories.ephpm-worker '{"type":"package","package":{"name":"ephpm/worker","version":"0.1.0","dist":{"url":"https://github.com/ephpm/php-worker/archive/refs/tags/v0.1.0.zip","type":"zip"},"source":{"url":"https://github.com/ephpm/php-worker.git","type":"git","reference":"v0.1.0"},"autoload":{"psr-4":{"Ephpm\\Worker\\":"src/"}},"require":{"php":"^8.2"}}}'
-    composer config repositories.ephpm-octane-driver '{"type":"package","package":{"name":"ephpm/octane-driver","version":"0.1.0","dist":{"url":"https://github.com/ephpm/octane-driver/archive/refs/tags/v0.1.0.zip","type":"zip"},"source":{"url":"https://github.com/ephpm/octane-driver.git","type":"git","reference":"v0.1.0"},"autoload":{"psr-4":{"Ephpm\\Octane\\":"src/"}},"bin":["bin/ephpm-octane-worker"],"require":{"php":"^8.2","ephpm/worker":"^0.1","laravel/octane":"^2.0","laravel/framework":"^10 || ^11 || ^12","symfony/http-foundation":"^6 || ^7"}}}'
-    composer require predis/predis laravel/octane ephpm/octane-driver:0.1.0 --with-all-dependencies --no-interaction --prefer-dist --no-progress
-    php -r '$file="vendor/ephpm/octane-driver/bin/ephpm-octane-worker"; $src=file_get_contents($file); $needle="    require \$autoload;\n\n    // --- 2. Fail fast if not under ePHPm worker mode."; $patch="    require \$autoload;\n    require_once __DIR__ . \"/../../worker/src/Runtime.php\";\n\n    // --- 2. Fail fast if not under ePHPm worker mode."; file_put_contents($file, str_replace($needle, $patch, $src));'
+    # The ePHPm worker packages are published as tagged Composer VCS repos;
+    # composer reads composer.json (name, autoload, bin) straight from the
+    # tags, so no inline package definitions or vendor patching is needed.
+    composer config repositories.ephpm-worker '{"type":"vcs","url":"https://github.com/ephpm/php-worker"}'
+    composer config repositories.ephpm-octane-driver '{"type":"vcs","url":"https://github.com/ephpm/octane-driver"}'
+    composer require predis/predis laravel/octane "ephpm/octane-driver:^0.1" --with-all-dependencies --no-interaction --prefer-dist --no-progress
 
     cat > .env <<'ENV'
     APP_NAME=LaravelV4Bench
@@ -629,7 +631,10 @@ spec:
               mountPath: /scripts
       containers:
         - name: ephpm-worker
-          image: REPLACE_WITH_YOUR_EPHPM_SOURCE_IMAGE
+          # ePHPm >= 0.3.0 ships worker mode in the published image - no
+          # source build needed. One binary per PHP minor; 8.4 matches the
+          # PHP-FPM side of this lab.
+          image: ephpm/ephpm:v0.3.0-php8.4
           command: ["sh", "/scripts/ephpm-worker-start.sh"]
           env:
             - name: RUNTIME_NAME
@@ -641,13 +646,14 @@ spec:
           ports:
             - containerPort: 8080
           readinessProbe:
+            # Built-in readiness endpoint: only turns ready after the worker
+            # pool has booted the framework, and (>= 0.3.0) it is exempt from
+            # trusted_hosts, so no Host-header workaround is needed for
+            # kubelet's raw-IP probes.
             httpGet:
-              path: /api/bootstrap
+              path: /_ephpm/ready
               port: 8080
-              httpHeaders:
-                - name: Host
-                  value: laravel-v4.local
-            initialDelaySeconds: 20
+            initialDelaySeconds: 5
             periodSeconds: 5
           resources:
             requests:
@@ -718,7 +724,10 @@ spec:
               mountPath: /scripts
       containers:
         - name: ephpm
-          image: ephpm/ephpm:8.4
+          # Pinned: 0.3.0-php8.4 is the first image where OPcache is active
+          # in the embedded runtime on PHP 8.4 (earlier images compiled it in
+          # but it never started - every request recompiled every script).
+          image: ephpm/ephpm:v0.3.0-php8.4
           command: ["sh", "/scripts/ephpm-start.sh"]
           env:
             - name: RUNTIME_NAME
@@ -729,12 +738,9 @@ spec:
             - containerPort: 8080
           readinessProbe:
             httpGet:
-              path: /api/bootstrap
+              path: /_ephpm/ready
               port: 8080
-              httpHeaders:
-                - name: Host
-                  value: laravel-v4.local
-            initialDelaySeconds: 10
+            initialDelaySeconds: 5
             periodSeconds: 5
           resources:
             requests:
