@@ -36,7 +36,7 @@ Before retesting v4, older v1/v2/Krayin deployments were scaled down to free CPU
 | v1 CPU | Small deterministic hash loop | ePHPm wins avg and p95 | 0.4.0 no longer looks worse on this toy route. |
 | v2 synthetic app | Front controller, autoload, templates, JSON fixtures | ePHPm wins avg and p95 | Current ePHPm looks solid on this synthetic app-shaped workload. |
 | v3 Krayin | Real Laravel CRM in normal request mode | PHP-FPM wins | ePHPm still does not win every framework app in request mode. |
-| v3b Krayin worker | Same Krayin path mix in ePHPm worker mode | ePHPm worker improves substantially | Worker mode changes the Krayin story, but this needs a full three-way rerun. |
+| v3b Krayin worker | Same Krayin path mix in ePHPm worker mode | ePHPm worker leads completed work and average latency in a controlled three-way rerun | Worker mode is promising, but FPM retains the best p95 in this run. |
 | v4 Laravel request mode | Synthetic Laravel app, cache-heavy routes | ePHPm slightly wins overall | Request mode is competitive here, but not the main story. |
 | v4 Laravel worker/native KV | Persistent worker plus native ePHPm KV | ePHPm wins clearly | This remains the strongest ePHPm shape. |
 | v4 rate-160 | Medium-traffic pressure run | ePHPm worker holds target rate; FPM drops heavily | Worker/native-KV architecture is the compelling result. |
@@ -65,7 +65,7 @@ Rate: `40 iterations/s` for `45s`.
 
 Interpretation: ePHPm 0.4.0 won this synthetic app-shaped test. This is a meaningful improvement over the early story, but it is still not a real application benchmark.
 
-## v3: Krayin CRM
+## v3: Krayin CRM Request-Mode Comparison
 
 Rate target: `8 iterations/s` for `75s`.
 
@@ -78,9 +78,11 @@ Interpretation: Krayin still favors PHP-FPM in this lab. Both stacks were functi
 
 This is the most important brake on overclaiming. ePHPm 0.4.0 is improved, but arbitrary Laravel applications in normal request mode should still be tested before making a runtime switch.
 
-## v3b: Krayin CRM Worker Mode
+## v3b: Krayin CRM Three-Way Comparison
 
-After the request-mode Krayin result, we added a separate ePHPm worker-mode Krayin deployment:
+The earlier v3b worker run was promising but was only compared directly with the prior request-mode run. I reran all three modes sequentially under the same conditions: one Krayin database, one active application deployment at a time, non-target workloads scaled down, and the same k6 job for each leg.
+
+The worker deployment uses the following shape:
 
 ```text
 k6 -> Service -> ePHPm worker -> Krayin / Laravel Octane bridge -> MySQL
@@ -98,11 +100,13 @@ Rate target: `8 iterations/s` for `75s`.
 
 | Runtime | Requests | Completed iterations | Dropped iterations | Failures | HTTP avg | HTTP median | HTTP p95 | HTTP p99 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| ePHPm 0.4.0 worker mode | 545 | 543 | 58 | 0 | 1.31 s | 1.11 s | 2.67 s | 3.37 s |
+| PHP-FPM + nginx | 531 | 529 | 72 | 0 | 1.78 s | 1.86 s | 2.52 s | 2.83 s |
+| ePHPm 0.4.0 request mode | 521 | 519 | 82 | 0 | 1.89 s | 2.27 s | 2.70 s | 2.81 s |
+| ePHPm 0.4.0 worker mode | 534 | 532 | 69 | 0 | 1.54 s | 1.48 s | 2.87 s | 3.03 s |
 
-Interpretation: this is a meaningful improvement over the request-mode ePHPm Krayin result. The request-mode ePHPm run completed 341 iterations with 260 dropped iterations, 3.19 s average latency, and 5.29 s p95. The worker-mode run completed 543 iterations with 58 dropped iterations, 1.31 s average latency, and 2.67 s p95.
+Interpretation: worker mode produced the best completed-iteration count, lowest dropped-iteration count, and lowest average and median latency. It was about 18% lower average HTTP latency than PHP-FPM and about 19% lower than ePHPm request mode. PHP-FPM had the best p95 and p99 in this run, so the worker result is a meaningful improvement in central tendency and sustained work, not a universal tail-latency win.
 
-Important caveat: this v3b run was performed after scaling the non-target Krayin app deployments down to fit the tiny LKE cluster cleanly. It proves the Krayin worker shape is viable and promising, but the next fair step is a controlled three-way rerun where PHP-FPM, ePHPm request mode, and ePHPm worker mode are each tested sequentially under the same cluster conditions.
+This closes the earlier v3b caveat: the three modes were tested sequentially with the same workload and cluster conditions. The result supports the narrower claim that adapting Krayin to ePHPm's persistent-worker architecture can improve average response time and completed work on this small LKE cluster. It does not establish that ePHPm wins every Laravel workload, every latency percentile, or every production deployment.
 
 ## v4: Laravel Cache-Heavy App
 
@@ -159,7 +163,7 @@ The current 0.4.0 pass sharpened the story, but it also exposed the next gaps:
 | Larger nodes | The Krayin test was constrained enough that both runtimes dropped iterations. |
 | Metrics API | CPU and memory data are needed to explain whether latency comes from CPU saturation, memory pressure, process overhead, or Redis/TCP overhead. |
 | Redis extension baseline | PHP-FPM should be retested with `phpredis`, not only Predis/TCP. |
-| Full Krayin three-way rerun | v3b shows worker mode is promising, but PHP-FPM, request mode, and worker mode should be retested sequentially under the same cluster conditions. |
+| Krayin three-way rerun | Completed in v3b. Worker mode led average latency and completed work; FPM retained the best p95/p99. Larger nodes, metrics, longer runs, and tuning remain open. |
 | Longer runs | Persistent workers need 10-30 minute soak tests to catch leak/drift behavior. |
 | Multiple worker counts | The ePHPm worker pool may have a different sweet spot than this first configuration. |
 | WordPress and Drupal | CMS/plugin behavior is where many real PHP operators live. |

@@ -36,7 +36,7 @@ PHP-FPM remains the safest default for arbitrary PHP applications, legacy/plugin
 | Plain PHP micro endpoints | Yes | ePHPm 0.4.0 competitive/winning in this lab | Still too tiny to be the main value proposition. |
 | Synthetic app-shaped PHP | Yes | ePHPm 0.4.0 wins | Useful signal, but still not a real app. |
 | Traditional Laravel in normal request mode | Yes | Mixed | The synthetic Laravel v4 request-mode test was competitive for ePHPm; Krayin request mode still favored PHP-FPM. |
-| Real Laravel app adapted to ePHPm worker mode | Yes, early v3b | Promising | Krayin worker mode ran successfully and improved over Krayin ePHPm request mode, but needs a full three-way rerun. |
+| Real Laravel app adapted to ePHPm worker mode | Yes, v3b | Promising | Krayin worker mode completed the most work and had the lowest average latency in the controlled three-way rerun, with a slightly higher p95 than FPM. |
 | WordPress | Not yet | Open | Important future target: plugins, OPcache, object cache, and normal PHP assumptions. |
 | Drupal | Not yet | Open | Good CMS-heavy target with meaningful bootstrap/cache behavior. |
 | Symfony | Not yet | Open | Especially interesting in worker-style serving. |
@@ -58,7 +58,7 @@ ephpm/ephpm:v0.4.0-php8.4
 | v1 | Tiny PHP hello and CPU routes | ePHPm won avg latency on both; PHP-FPM had better hello p95 | Useful sanity check, not a real workload. |
 | v2 | Synthetic front-controller app | ePHPm won avg and p95 | ePHPm 0.4.0 looks materially better than the early run here. |
 | v3 | Krayin CRM in normal request mode | PHP-FPM won | Real apps still need direct validation; request mode is not a universal win. |
-| v3b | Krayin CRM in ePHPm worker mode | ePHPm worker completed 543 iterations with 58 drops | Worker mode changes the Krayin story; next step is a fair sequential three-way rerun. |
+| v3b | Krayin CRM: PHP-FPM vs ePHPm request vs ePHPm worker | Worker completed 532 iterations with 69 drops; FPM completed 529; request mode 519 | Worker mode led on completed work and average latency, while FPM had the best p95. |
 | v4 | Laravel cache-heavy app at 20 rps | ePHPm worker won; request mode was competitive | Native KV and worker mode are where ePHPm gets interesting. |
 | v4 rate-160 | Same Laravel app under pressure | ePHPm worker held 159.27 iterations/s; PHP-FPM completed 100.02/s | Strongest current ePHPm result in this repo. |
 

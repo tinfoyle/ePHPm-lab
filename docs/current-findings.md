@@ -243,7 +243,7 @@ This test exposed practical ePHPm compatibility issues before benchmarking:
 - ePHPm's PHP build has `mbstring`, but `mb_split()` is unavailable because mbregex is disabled. Laravel 12 calls `mb_split()` via `Illuminate\Support\Str`, so the app needed a guarded compatibility shim loaded through Composer autoload.
 - `ephpm php artisan ...` did not behave like normal PHP CLI for this app. In this run it initially failed because `$_SERVER['PHP_SELF']` was missing, and then appeared to print the Artisan command list instead of reliably running the requested Krayin installer command. The migration/install job was therefore moved to official PHP CLI.
 - Krayin's installer calls `migrate:fresh` without `--force`, which Laravel cancels under `APP_ENV=production`. The install job now runs the underlying migration/seeding steps directly with `--force`.
-- ePHPm is still being tested in normal serve mode, not ePHPm worker mode. This means v3 is a real Laravel workload, but still not a test of ePHPm's best-case worker-mode claim.
+- The initial v3 comparison tested ePHPm in normal serve mode. A later v3b rerun added worker mode and compared all three modes sequentially under the same conditions; those results are recorded in `docs/ephpm-0.4.0-retest.md`.
 
 The compatibility shim is deliberately small and guarded:
 
@@ -264,7 +264,7 @@ Interpretation:
 - PHP-FPM/nginx sustained the gentle target almost completely.
 - ePHPm remained correct, but did not sustain the target rate. k6 reached `16` active VUs, warned about insufficient VUs, and dropped most scheduled iterations.
 - This is the first truly app-shaped result, and it is unfavorable to ePHPm in normal serve mode.
-- The result should not be generalized to ePHPm worker mode. The ePHPm repo's most compelling performance story still appears to depend on persistent workers, DB pooling, and KV/cache integration, none of which this Krayin v3 run used.
+- The result should not be generalized to ePHPm worker mode. The later v3b three-way rerun showed worker mode completing slightly more work with lower average latency, while PHP-FPM retained the best p95/p99.
 
 ## v4 Straight Laravel + Cache Workload
 
@@ -322,12 +322,12 @@ Interpretation:
 - ePHPm remained correct, but saturated almost immediately, hit the `40` VU ceiling, and dropped most scheduled iterations.
 - This still does not test ePHPm's Laravel Octane/worker-mode story. The ePHPm docs indicate worker mode exists, but this run stayed on normal Laravel request handling because the exact Laravel worker package/entrypoint was not established during this pass.
 
-Current factual narrative:
+Current factual narrative at the end of the initial v3/v4 pass:
 
 - Our simple synthetic tests did not show a meaningful ePHPm advantage.
 - Our real Krayin workload strongly favored PHP-FPM/nginx.
 - Our straight Laravel plus cache workload, even with ePHPm native KV, still strongly favored PHP-FPM/nginx plus Redis.
-- The untested hypothesis that remains is ePHPm worker mode with a Laravel-compatible persistent worker, ideally combined with DB pooling and native KV. Without worker mode, the tests we have actually run do not support the claim that ePHPm is faster for these workloads.
+- The remaining question at that point was ePHPm worker mode with a Laravel-compatible persistent worker, ideally combined with DB pooling and native KV. That question was answered for Krayin in the later v3b three-way rerun: worker mode was promising, but it did not win every latency percentile.
 
 ## v4 Worker-Mode Attempt
 
