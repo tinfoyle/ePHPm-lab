@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 350" role="img" aria-labelledby="title desc">
+  <title id="title">Laravel cache workload latency at 20 iterations per second</title>
+  <desc id="desc">ePHPm worker has the lowest average and p95 latency compared with ePHPm request mode and PHP-FPM plus Redis and Predis.</desc>
+  <style>
+    text { font-family: Arial, Helvetica, sans-serif; fill: #1f2937; }
+    .title { font-size: 22px; font-weight: 700; }
+    .subtitle { font-size: 14px; fill: #4b5563; }
+    .heading { font-size: 16px; font-weight: 700; }
+    .label { font-size: 14px; }
+    .value { font-size: 14px; font-weight: 700; }
+    .axis { font-size: 12px; fill: #6b7280; }
+    .grid { stroke: #d1d5db; stroke-width: 1; }
+    .fpm { fill: #475569; }
+    .request { fill: #d97706; }
+    .worker { fill: #0f766e; }
+  </style>
+  <text x="38" y="38" class="title">Laravel cache workload</text>
+  <text x="38" y="60" class="subtitle">20 iterations/s for 75s. Lower is better. All paths completed 1,501 iterations with zero failures.</text>
+  <text x="38" y="102" class="heading">Average HTTP latency</text>
+  <text x="478" y="102" class="heading">p95 HTTP latency</text>
+  <line x1="190" y1="116" x2="190" y2="296" class="grid"/>
+  <line x1="290" y1="116" x2="290" y2="296" class="grid"/>
+  <line x1="390" y1="116" x2="390" y2="296" class="grid"/>
+  <line x1="630" y1="116" x2="630" y2="296" class="grid"/>
+  <line x1="730" y1="116" x2="730" y2="296" class="grid"/>
+  <line x1="830" y1="116" x2="830" y2="296" class="grid"/>
+  <text x="186" y="314" class="axis">0</text><text x="282" y="314" class="axis">5 ms</text><text x="378" y="314" class="axis">10 ms</text>
+  <text x="626" y="314" class="axis">0</text><text x="722" y="314" class="axis">10 ms</text><text x="822" y="314" class="axis">20 ms</text>
+  <text x="38" y="146" class="label">PHP-FPM + Redis/Predis</text>
+  <rect x="190" y="128" width="233" height="24" rx="2" class="fpm"/><text x="431" y="146" class="value">12.12 ms</text>
+  <text x="38" y="202" class="label">ePHPm request + native KV</text>
+  <rect x="190" y="184" width="216" height="24" rx="2" class="request"/><text x="414" y="202" class="value">11.24 ms</text>
+  <text x="38" y="258" class="label">ePHPm worker + native KV</text>
+  <rect x="190" y="240" width="132" height="24" rx="2" class="worker"/><text x="330" y="258" class="value">6.88 ms</text>
+  <rect x="630" y="128" width="227" height="24" rx="2" class="fpm"/><text x="864" y="146" class="value" text-anchor="end">23.55 ms</text>
+  <rect x="630" y="184" width="199" height="24" rx="2" class="request"/><text x="836" y="202" class="value">20.69 ms</text>
+  <rect x="630" y="240" width="117" height="24" rx="2" class="worker"/><text x="754" y="258" class="value">12.15 ms</text>
+</svg>

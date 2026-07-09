@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 330" role="img" aria-labelledby="title desc">
+  <title id="title">Clustered OPcache invalidation comparison</title>
+  <desc id="desc">ePHPm deploy invalidation has lower average, p95, and p99 latency than a PHP-FPM rolling restart at 50 iterations per second for 120 seconds.</desc>
+  <style>
+    text { font-family: Arial, Helvetica, sans-serif; fill: #1f2937; }
+    .title { font-size: 22px; font-weight: 700; }
+    .subtitle { font-size: 14px; fill: #4b5563; }
+    .label { font-size: 15px; }
+    .value { font-size: 14px; font-weight: 700; }
+    .axis { font-size: 12px; fill: #6b7280; }
+    .grid { stroke: #d1d5db; stroke-width: 1; }
+    .ephpm { fill: #0f766e; }
+    .fpm { fill: #475569; }
+  </style>
+  <text x="38" y="38" class="title">Clustered OPcache invalidation</text>
+  <text x="38" y="60" class="subtitle">50 iterations/s for 120s. Both paths completed 6,001 requests with zero failures. Lower is better.</text>
+  <line x1="270" y1="96" x2="270" y2="268" class="grid"/><line x1="420" y1="96" x2="420" y2="268" class="grid"/><line x1="570" y1="96" x2="570" y2="268" class="grid"/><line x1="720" y1="96" x2="720" y2="268" class="grid"/>
+  <text x="266" y="290" class="axis">0</text><text x="412" y="290" class="axis">5 ms</text><text x="558" y="290" class="axis">10 ms</text><text x="704" y="290" class="axis">15 ms</text>
+  <text x="38" y="125" class="label">Average</text>
+  <rect x="270" y="104" width="31" height="18" rx="2" class="ephpm"/><text x="309" y="118" class="value">ePHPm 1.06 ms</text>
+  <rect x="270" y="130" width="64" height="18" rx="2" class="fpm"/><text x="342" y="144" class="value">FPM 2.19 ms</text>
+  <text x="38" y="185" class="label">p95</text>
+  <rect x="270" y="164" width="72" height="18" rx="2" class="ephpm"/><text x="350" y="178" class="value">ePHPm 2.47 ms</text>
+  <rect x="270" y="190" width="163" height="18" rx="2" class="fpm"/><text x="441" y="204" class="value">FPM 5.57 ms</text>
+  <text x="38" y="245" class="label">p99</text>
+  <rect x="270" y="224" width="175" height="18" rx="2" class="ephpm"/><text x="453" y="238" class="value">ePHPm 5.98 ms</text>
+  <rect x="270" y="250" width="398" height="18" rx="2" class="fpm"/><text x="676" y="264" class="value">FPM 13.63 ms</text>
+</svg>

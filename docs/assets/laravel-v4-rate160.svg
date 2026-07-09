@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 300" role="img" aria-labelledby="title desc">
+  <title id="title">Laravel pressure test throughput at 160 iterations per second</title>
+  <desc id="desc">ePHPm worker sustained 159.27 iterations per second and dropped 22 iterations. PHP-FPM sustained 100.02 per second and dropped 2525 iterations.</desc>
+  <style>
+    text { font-family: Arial, Helvetica, sans-serif; fill: #1f2937; }
+    .title { font-size: 22px; font-weight: 700; }
+    .subtitle { font-size: 14px; fill: #4b5563; }
+    .label { font-size: 16px; }
+    .value { font-size: 16px; font-weight: 700; }
+    .axis { font-size: 12px; fill: #6b7280; }
+    .grid { stroke: #d1d5db; stroke-width: 1; }
+    .target { stroke: #9f1239; stroke-width: 2; stroke-dasharray: 6 5; }
+    .fpm { fill: #475569; }
+    .worker { fill: #0f766e; }
+  </style>
+  <text x="38" y="38" class="title">Laravel pressure test</text>
+  <text x="38" y="60" class="subtitle">160 iterations/s target for 45s. Higher sustained rate is better.</text>
+  <line x1="250" y1="94" x2="250" y2="222" class="grid"/>
+  <line x1="425" y1="94" x2="425" y2="222" class="grid"/>
+  <line x1="600" y1="94" x2="600" y2="222" class="grid"/>
+  <line x1="775" y1="94" x2="775" y2="222" class="grid"/>
+  <line x1="810" y1="82" x2="810" y2="232" class="target"/>
+  <text x="810" y="76" class="axis" text-anchor="middle">160/s target</text>
+  <text x="246" y="247" class="axis">0</text><text x="416" y="247" class="axis">50/s</text><text x="589" y="247" class="axis">100/s</text><text x="763" y="247" class="axis">150/s</text>
+  <text x="38" y="134" class="label">PHP-FPM + Redis/Predis</text>
+  <rect x="250" y="112" width="350" height="30" rx="2" class="fpm"/>
+  <text x="612" y="134" class="value">100.02/s</text>
+  <text x="250" y="163" class="axis">2,525 dropped iterations</text>
+  <text x="38" y="202" class="label">ePHPm worker + native KV</text>
+  <rect x="250" y="180" width="557" height="30" rx="2" class="worker"/>
+  <text x="798" y="202" class="value" text-anchor="end">159.27/s</text>
+  <text x="250" y="231" class="axis">22 dropped iterations</text>
+</svg>

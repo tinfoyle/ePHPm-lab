@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 410" role="img" aria-labelledby="title desc">
+  <title id="title">Krayin CRM three-way benchmark</title>
+  <desc id="desc">At eight iterations per second for 75 seconds, ePHPm worker completed the most work and had the lowest average latency. PHP-FPM had the best p95 latency.</desc>
+  <style>
+    text { font-family: Arial, Helvetica, sans-serif; fill: #1f2937; }
+    .title { font-size: 22px; font-weight: 700; }
+    .subtitle { font-size: 14px; fill: #4b5563; }
+    .heading { font-size: 16px; font-weight: 700; }
+    .label { font-size: 14px; }
+    .value { font-size: 14px; font-weight: 700; }
+    .axis { font-size: 12px; fill: #6b7280; }
+    .grid { stroke: #d1d5db; stroke-width: 1; }
+    .fpm { fill: #475569; }
+    .request { fill: #d97706; }
+    .worker { fill: #0f766e; }
+  </style>
+  <text x="38" y="38" class="title">Krayin CRM, three-way comparison</text>
+  <text x="38" y="60" class="subtitle">8 iterations/s for 75s. All modes had zero HTTP failures. Higher completed work is better; lower latency is better.</text>
+  <text x="38" y="104" class="heading">Completed iterations</text>
+  <text x="478" y="104" class="heading">Average / p95 HTTP latency</text>
+  <line x1="195" y1="120" x2="195" y2="328" class="grid"/><line x1="295" y1="120" x2="295" y2="328" class="grid"/><line x1="395" y1="120" x2="395" y2="328" class="grid"/>
+  <text x="188" y="348" class="axis">0</text><text x="280" y="348" class="axis">250</text><text x="376" y="348" class="axis">500</text>
+  <text x="38" y="150" class="label">PHP-FPM + nginx</text><rect x="195" y="132" width="212" height="24" rx="2" class="fpm"/><text x="415" y="150" class="value">529</text>
+  <text x="38" y="210" class="label">ePHPm request mode</text><rect x="195" y="192" width="208" height="24" rx="2" class="request"/><text x="411" y="210" class="value">519</text>
+  <text x="38" y="270" class="label">ePHPm worker mode</text><rect x="195" y="252" width="213" height="24" rx="2" class="worker"/><text x="416" y="270" class="value">532</text>
+  <text x="478" y="142" class="axis">Average</text><text x="694" y="142" class="axis">p95</text>
+  <text x="478" y="170" class="label">PHP-FPM</text><rect x="562" y="154" width="139" height="18" rx="2" class="fpm"/><text x="708" y="170" class="value">1.78s</text><rect x="770" y="154" width="76" height="18" rx="2" class="fpm"/><text x="854" y="170" class="value" text-anchor="end">2.52s</text>
+  <text x="478" y="228" class="label">ePHPm request</text><rect x="562" y="212" width="148" height="18" rx="2" class="request"/><text x="717" y="228" class="value">1.89s</text><rect x="770" y="212" width="81" height="18" rx="2" class="request"/><text x="860" y="228" class="value" text-anchor="end">2.70s</text>
+  <text x="478" y="286" class="label">ePHPm worker</text><rect x="562" y="270" width="121" height="18" rx="2" class="worker"/><text x="690" y="286" class="value">1.54s</text><rect x="770" y="270" width="86" height="18" rx="2" class="worker"/><text x="864" y="286" class="value" text-anchor="end">2.87s</text>
+  <text x="478" y="336" class="axis">Dropped iterations: FPM 72, request 82, worker 69</text>
+</svg>
