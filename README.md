@@ -4,15 +4,17 @@ Author: Benjamin Pace
 
 This repository contains the manifests, helper scripts, patches, and writeups from a small Kubernetes benchmark lab comparing ePHPm against the official Docker Hub PHP-FPM image.
 
-The short version:
+The current short version:
 
-- ePHPm did **not** outperform PHP-FPM in normal request mode in these tests.
-- ePHPm became compelling only after switching to a source-built ePHPm worker runtime plus native ePHPm KV.
-- The most useful finding is not just the winning number. It is the deployment shape required to reach that number.
+- ePHPm is not a universal drop-in "PHP-FPM but faster" replacement.
+- ePHPm becomes compelling when the app and deployment model use ePHPm's worker/native-service architecture.
+- The newer OPcache cluster tests are promising: ePHPm can invalidate OPcache across a cluster without rolling PHP processes.
+- PHP-FPM remains the boring production baseline, especially for arbitrary PHP apps in normal request mode.
 
 For the narrative report, start here:
 
 - [docs/ephpm-vs-php-fpm-lab-report.md](docs/ephpm-vs-php-fpm-lab-report.md)
+- [docs/follow-up-opcache.md](docs/follow-up-opcache.md)
 - [docs/current-findings.md](docs/current-findings.md)
 
 ## Repository Layout
@@ -36,8 +38,45 @@ For the narrative report, start here:
 | v4 worker attempt | Laravel + cache | Public image, worker config | Blocked by runtime/package mismatch |
 | v4 source worker | Laravel + cache | Source-built worker mode + native KV | ePHPm clear win |
 | v4 rate-8 | Laravel + cache | Source-built worker mode + native KV | ePHPm sustained far more scheduled work |
+| OPcache follow-up | Clustered OPcache invalidation | Published `ephpm/ephpm:v0.4.0-php8.4` | ePHPm invalidated cache cluster-wide without restart and showed lower latency than FPM rolling restart |
 
 ## Headline Results
+
+### OPcache Cluster Follow-Up
+
+After the initial report, ePHPm's creator responded with fixes and new OPcache cluster tests. We pulled those changes into the same LKE lab and reran them against the published `ephpm/ephpm:v0.4.0-php8.4` image.
+
+Correctness passed:
+
+```text
+PASS: one deploy on opcache-demo-0 invalidated OPcache on opcache-demo-0 opcache-demo-1
+```
+
+The A/B blip test compared:
+
+```text
+k6 -> Service -> ePHPm cluster -> ephpm deploy -> clustered OPcache invalidation
+```
+
+against:
+
+```text
+k6 -> Service -> nginx -> PHP-FPM -> rolling restart to clear OPcache
+```
+
+Rate: `50 iterations/s` for `120s`.
+
+| Metric | ePHPm deploy | PHP-FPM rolling |
+| --- | ---: | ---: |
+| requests | 6001 | 6001 |
+| failed | 0 | 0 |
+| fail rate | 0.00% | 0.00% |
+| avg | 1.06 ms | 2.19 ms |
+| p95 | 2.47 ms | 5.57 ms |
+| p99 | 5.98 ms | 13.63 ms |
+| max | 21.75 ms | 40.50 ms |
+
+This does not erase the earlier findings. It shows the project responding to a real operator-facing gap and adding a more compelling clustered runtime story.
 
 ### v4 Worker Baseline
 
