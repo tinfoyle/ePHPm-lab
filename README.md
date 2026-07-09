@@ -1,46 +1,56 @@
-# ePHPm Lab: Current Kubernetes Comparison
+# ePHPm Lab: PHP App Compatibility And Performance Notes
 
 Author: Benjamin Pace
 
-This repository is a reproducible Kubernetes lab for evaluating ePHPm against the standard PHP-FPM/nginx deployment shape.
+This repository is a reproducible Kubernetes lab for comparing current ePHPm with the standard PHP-FPM/nginx deployment shape.
 
-The README is written from the perspective of someone taking current ePHPm off the shelf today. The full historical story is preserved in `docs/`, including the early tests that failed to show an ePHPm advantage and the follow-up work that made the current results more interesting.
+It is meant to answer a practical operator question:
+
+> If I run a PHP application today, where does ePHPm look promising, and where should I still expect PHP-FPM to be the safer baseline?
+
+For the history of the testing process, including the early false starts and the upstream follow-up, read:
+
+- [docs/ephpm-vs-php-fpm-lab-report.md](docs/ephpm-vs-php-fpm-lab-report.md)
+- [docs/follow-up-opcache.md](docs/follow-up-opcache.md)
+- [docs/current-findings.md](docs/current-findings.md)
 
 ## Current Takeaway
 
-Current ePHPm is most interesting when you use the runtime features that make it different from PHP-FPM:
+ePHPm is most compelling when the application can use runtime features that PHP-FPM does not provide:
 
-- clustered OPcache invalidation
+- clustered OPcache invalidation without rolling PHP processes
 - persistent worker-style deployments
 - native services such as ePHPm KV
-- avoiding process restarts for runtime cache-bust operations
+- lower overhead on adapted worker/native-service workloads
 
-It should not be evaluated only as "PHP-FPM, but with a different binary." The promising results in this repo come from deployment shapes where ePHPm is allowed to behave like an application runtime, not just a request runner.
+PHP-FPM remains the safest default for arbitrary PHP applications, legacy/plugin-heavy apps, and teams that need maximum operational familiarity today.
 
-PHP-FPM still has the edge when the requirement is maximum boring certainty for arbitrary PHP apps. ePHPm starts to look compelling when the app and operator model can use its worker/native-service architecture.
+## Application Fit Matrix
 
-## Should I Use ePHPm?
+| Application / workload shape | Tested here? | Current read | Notes |
+| --- | --- | --- | --- |
+| Clustered PHP app with OPcache deploy invalidation | Yes | Strong ePHPm case | ePHPm invalidated OPcache across two pods with one `ephpm deploy`, no PHP process rollout. |
+| Laravel-style persistent worker with hot cache paths | Yes | Strong ePHPm case | Adapted Laravel/KV workload favored ePHPm worker mode plus native KV. |
+| Cache-heavy app that can use native ePHPm KV | Yes, indirectly | Strong ePHPm case | Best v4 result came from avoiding Redis/Predis/TCP on hot paths. |
+| Plain PHP micro endpoints | Yes, historical | Mixed / not the main value | PHP-FPM is already extremely fast here; ePHPm's runtime features matter less. |
+| Traditional Laravel in normal request mode | Yes, historical | Needs retest on current ePHPm | Earlier normal-mode results favored PHP-FPM, but those tests predated the OPcache follow-up. |
+| WordPress | Not yet | Open | Important future target: plugins, OPcache, object cache, and normal PHP assumptions. |
+| Drupal | Not yet | Open | Good CMS-heavy target with meaningful bootstrap/cache behavior. |
+| Symfony | Not yet | Open | Especially interesting in worker-style serving. |
+| Composer-heavy custom app | Not yet | Open | Needs realistic autoload/dependency graph testing. |
+| Need no-surprises production certainty today | Operational judgment | PHP-FPM advantage | PHP-FPM has the longer track record, wider extension expectations, and more operator muscle memory. |
 
-| Situation | Practical answer today | Why |
-| --- | --- | --- |
-| Arbitrary legacy PHP app | Probably start with PHP-FPM | PHP-FPM is the safer baseline for unknown code, plugin ecosystems, and standard per-request assumptions. |
-| Current ePHPm with clustered OPcache | Worth testing | The v0.4 OPcache test invalidated cache across both ePHPm pods without rolling PHP processes. |
-| Laravel/Octane-style persistent worker | Worth testing | Our adapted Laravel/KV worker workload showed a clear ePHPm advantage. |
-| Cache-heavy app that can use native ePHPm KV | Strong ePHPm case | The strongest v4 result came from persistent worker mode plus native KV instead of Redis/Predis/TCP. |
-| Need no-surprises production operations today | PHP-FPM still wins | PHP-FPM has the longer production track record, wider extension expectations, and more operator muscle memory. |
-| Comparing normal request mode only | Retest with current ePHPm before concluding | Earlier normal-mode tests favored PHP-FPM, but they predated the OPcache follow-up and should be treated as historical evidence, not the final word. |
+## Current Measured Comparisons
 
-## Current Headline Results
+### Clustered OPcache Invalidation
 
-### OPcache Cluster Invalidation
-
-This is the most current off-the-shelf ePHPm result in the repo. It uses the published image:
+Image:
 
 ```text
 ephpm/ephpm:v0.4.0-php8.4
 ```
 
-The test compares ePHPm clustered OPcache invalidation against the PHP-FPM equivalent: rolling the PHP-FPM pods to clear OPcache when `opcache.validate_timestamps=0`.
+This test compares ePHPm clustered OPcache invalidation against the PHP-FPM equivalent: rolling PHP-FPM pods to clear OPcache when `opcache.validate_timestamps=0`.
 
 Correctness passed:
 
@@ -48,15 +58,10 @@ Correctness passed:
 PASS: one deploy on opcache-demo-0 invalidated OPcache on opcache-demo-0 opcache-demo-1
 ```
 
-The A/B blip test compared:
+Architecture:
 
 ```text
 k6 -> Service -> ePHPm cluster -> ephpm deploy -> clustered OPcache invalidation
-```
-
-against:
-
-```text
 k6 -> Service -> nginx -> PHP-FPM -> rolling restart to clear OPcache
 ```
 
@@ -72,9 +77,16 @@ Rate: `50 iterations/s` for `120s`.
 | p99 | 5.98 ms | 13.63 ms |
 | max | 21.75 ms | 40.50 ms |
 
-This does not erase the earlier findings. It shows the project responding to a real operator-facing gap and adding a more compelling clustered runtime story.
+Both stacks stayed available. The ePHPm advantage here is operational shape and latency: one deploy signal invalidated cache across the ePHPm cluster without rolling PHP processes.
 
-### Adapted Laravel Worker/KV Shape
+### Adapted Laravel Worker + Native KV
+
+Architecture:
+
+```text
+k6 -> Service -> ePHPm worker -> native KV
+k6 -> Service -> nginx -> PHP-FPM -> Predis/TCP -> Redis
+```
 
 Rate: `20 iterations/s` for `75s`.
 
@@ -92,59 +104,32 @@ Rate: `160 iterations/s` for `45s`.
 | ePHPm source worker mode | 7091 | 156.53/s | 110 | 3.83ms | 819.08ms | 1.23s | 0 |
 | PHP-FPM + nginx + Redis | 4744 | 101.79/s | 2457 | 1.49s | 1.72s | 2.50s | 0 |
 
-**Important caveat:** This is not "ePHPm universally beats PHP-FPM." This is "ePHPm can beat PHP-FPM when the app and deployment model are adapted to ePHPm's worker/native-service architecture."
+This is not a universal runtime victory. It is evidence that ePHPm can become compelling when the app and deployment model use ePHPm's worker/native-service architecture.
 
-The important finding is not a universal runtime victory. The important finding is the deployment shape where ePHPm becomes compelling.
+## What To Test Next
 
-## Architecture Shapes That Matter
+The goal is for this repo to become a practical lookup table for real PHP applications.
 
-The current OPcache cluster test:
-
-```text
-k6 -> Service -> ePHPm cluster -> ephpm deploy -> clustered OPcache invalidation
-```
-
-The adapted Laravel/KV ePHPm shape:
-
-```text
-k6 -> Service -> ePHPm worker -> native KV
-```
-
-The comparable PHP-FPM shapes:
-
-```text
-k6 -> Service -> nginx -> PHP-FPM -> Predis/TCP -> Redis
-k6 -> Service -> nginx -> PHP-FPM -> rolling restart to clear OPcache
-```
-
-That distinction matters. The best ePHPm results did not come from pointing an arbitrary PHP app at ePHPm and hoping. They came from using the runtime features PHP-FPM does not have.
-
-## Historical Narrative
-
-The older tests are still valuable, but they are no longer the best front-page summary of current ePHPm.
-
-The repo history is:
-
-| Phase | Workload | What it showed |
-| --- | --- | --- |
-| Early tiny/synthetic tests | Small scripts and app-shaped PHP | PHP-FPM was already extremely strong for simple per-request PHP. |
-| Krayin and early Laravel tests | Real/real-ish Laravel workloads | ePHPm normal mode looked poor before the later OPcache work. |
-| Worker/native KV tests | Adapted Laravel/KV workload | ePHPm became compelling when using worker mode and native KV. |
-| OPcache follow-up | Published ePHPm v0.4 image | ePHPm added a strong clustered OPcache invalidation story. |
-
-For the story, read:
-
-- [docs/ephpm-vs-php-fpm-lab-report.md](docs/ephpm-vs-php-fpm-lab-report.md)
-- [docs/follow-up-opcache.md](docs/follow-up-opcache.md)
-- [docs/current-findings.md](docs/current-findings.md)
+| Future test | Why it matters |
+| --- | --- |
+| WordPress | The obvious CMS test: plugins, OPcache behavior, object cache, admin paths, and normal PHP assumptions. |
+| Drupal | Heavier CMS behavior with substantial bootstrap and cache layers. |
+| Symfony demo/API app | Good framework comparison, especially with a worker-style model. |
+| Laravel Octane / Swoole / RoadRunner / ePHPm | ePHPm should be compared against other persistent-worker PHP runtimes, not only PHP-FPM. |
+| PHP-FPM with `phpredis` instead of Predis | Strengthens the PHP-FPM cache baseline. |
+| Larger nodes | The original LKE nodes were small; bigger nodes would show whether the shape holds with more CPU and memory headroom. |
+| Metrics API installed for CPU/memory | Latency without CPU/memory data is incomplete. |
+| Sustained 10-30 minute runs | Persistent workers need soak testing for leaks, drift, and tail behavior. |
+| Multiple worker counts | Worker count and concurrency tuning may change the throughput knee and p95/p99 behavior. |
+| Failure/restart behavior | Production confidence depends on deploys, crashes, stale state, and pod restarts. |
 
 ## Repository Layout
 
 | Path | Purpose |
 | --- | --- |
-| `docs/` | Narrative report, follow-up, and raw findings from the lab. |
+| `docs/` | Historical narrative, follow-up, and raw findings. |
 | `k8s/` | Kubernetes manifests and k6 jobs for each benchmark phase. |
-| `patches/` | Local patch used during the source-built worker-mode phase. |
+| `patches/` | Local patch used during the older source-built worker-mode phase. |
 | `scripts/` | Helper scripts for cloning inputs, building ePHPm, rendering manifests, and running v4 worker tests. |
 | `apps/` | Ignored local upstream checkouts created by `scripts/clone-inputs.sh`. Not committed. |
 
@@ -154,23 +139,9 @@ This is a reproducible lab, not a universal benchmark.
 
 - The original cluster was a three-node Linode LKE cluster using `g6-standard-1` nodes.
 - Kubernetes Metrics API was not installed, so CPU and memory correlation is incomplete.
-- Historical docs mention the original LKE node names and a temporary `ttl.sh` image. The committed manifests have been made portable by removing `nodeName` pins and replacing expired image references with placeholders or published tags.
-- The older v4 worker result depended on a source-built ePHPm image because the public image available at that time did not expose the worker runtime path we needed. The newer OPcache follow-up uses the published `ephpm/ephpm:v0.4.0-php8.4` image.
+- Some historical docs mention original LKE node names and temporary image tags. The committed manifests have been made portable where practical.
+- The older Laravel worker result depended on a source-built ePHPm image. The newer OPcache follow-up uses the published `ephpm/ephpm:v0.4.0-php8.4` image.
 - The manifests are intentionally small and self-contained. They generate apps in init containers rather than assuming a long-lived application image.
-
-## What I Would Test Next
-
-If I were turning this into a stronger operator-grade evaluation, I would test:
-
-| Next test | Why it matters |
-| --- | --- |
-| Larger nodes | The original LKE nodes were small; bigger nodes would show whether the shape holds with more CPU and memory headroom. |
-| Metrics API installed for CPU/memory | Latency without resource data is incomplete. I want CPU, memory, restart, and saturation signals. |
-| Sustained 10-30 minute runs | The current runs are short. Persistent workers need longer soak tests to expose leaks, drift, and tail behavior. |
-| Multiple worker counts | Worker count and concurrency tuning may change the throughput knee and p95/p99 behavior. |
-| Redis extension vs Predis | PHP-FPM used Predis/TCP. Testing `phpredis` would make the PHP-FPM cache baseline stronger. |
-| Octane/Swoole/RoadRunner/ePHPm comparison | ePHPm should be compared against other persistent-worker PHP runtimes, not only PHP-FPM. |
-| Failure/restart behavior for persistent workers | Production confidence depends on how workers behave across crashes, deploys, stale state, and pod restarts. |
 
 ## Prerequisites
 
@@ -184,9 +155,38 @@ You need:
 
 The original work was done from WSL, but WSL is not required.
 
-## Reproduce The v4 Worker Tests
+## Reproduce The Current OPcache Test
 
-The v4 worker tests are the most important reproduction path because they are where ePHPm finally showed its advantage.
+Deploy both OPcache stacks:
+
+```bash
+kubectl apply -f k8s/opcache-cluster.yaml
+kubectl apply -f k8s/opcache-fpm-cluster.yaml
+```
+
+Run the correctness test:
+
+```bash
+bash k8s/opcache-cluster-test.sh
+```
+
+Run the A/B blip test:
+
+```bash
+bash k8s/opcache-blip-test.sh
+```
+
+For a local kind cluster with a locally loaded ePHPm image, override the image:
+
+```bash
+EPHPM_IMAGE=ephpm-v040-rc:final bash k8s/opcache-blip-test.sh
+```
+
+For a remote cluster such as LKE, leave `EPHPM_IMAGE` unset so the published image in the manifest is used.
+
+## Reproduce The Laravel Worker Tests
+
+The Laravel worker tests are retained because they show the worker/native-KV shape where ePHPm became compelling.
 
 ### 1. Clone Upstream Inputs
 
@@ -218,8 +218,6 @@ docker push ghcr.io/YOUR_ORG/ephpm:source-469c51e
 
 ### 3. Render The v4 Manifest
 
-The committed manifest contains `REPLACE_WITH_YOUR_EPHPM_SOURCE_IMAGE` so the repo does not point at an expired temporary image.
-
 ```bash
 EPHPM_SOURCE_IMAGE=ghcr.io/YOUR_ORG/ephpm:source-469c51e \
   scripts/render-laravel-v4.sh
@@ -236,14 +234,6 @@ This writes:
 ```bash
 scripts/run-v4-worker-baseline.sh
 ```
-
-That script:
-
-1. Applies the rendered Laravel v4 manifest.
-2. Waits for PHP-FPM and ePHPm worker deployments.
-3. Runs the PHP-FPM k6 job.
-4. Runs the ePHPm worker k6 job.
-5. Prints both k6 summaries.
 
 ### 5. Run The Rate-8 Test Sequentially
 
@@ -273,24 +263,19 @@ kubectl logs job/k6-v4-rate8-php-fpm -n laravel-v4
 
 Do not run the two rate-8 jobs concurrently if you want a fair side-by-side comparison.
 
-## Earlier Phases
+## Historical Tests
 
-The earlier phases are included because they explain the path we took and the false starts we hit.
+The earlier tests are intentionally not summarized here. They are part of the narrative and remain available for audit:
 
-| Phase | Deploy | Run |
-| --- | --- | --- |
-| v1 tiny scripts | `kubectl apply -f k8s/php-benchmark.yaml` | `k8s/k6-*.yaml`, `k8s/inspect-*.yaml` |
-| v2 synthetic app | `kubectl apply -f k8s/php-benchmark-v2.yaml` | `k8s/k6-v2-*.yaml` |
-| v3 Krayin CRM | `kubectl apply -f k8s/krayin-v3.yaml` | `k8s/k6-v3-*.yaml` |
-| v4 normal mode | `kubectl apply -f .generated/k8s/laravel-v4.yaml` | `k8s/k6-v4-php-fpm.yaml`, `k8s/k6-v4-ephpm.yaml` |
-
-Some earlier manifests generate application code dynamically and may take several minutes on small nodes.
+- [docs/ephpm-vs-php-fpm-lab-report.md](docs/ephpm-vs-php-fpm-lab-report.md)
+- [docs/current-findings.md](docs/current-findings.md)
 
 ## Cleanup
 
 Most resources live in these namespaces:
 
 ```bash
+kubectl delete namespace opcache-demo --ignore-not-found
 kubectl delete namespace php-bench --ignore-not-found
 kubectl delete namespace laravel-v4 --ignore-not-found
 ```
