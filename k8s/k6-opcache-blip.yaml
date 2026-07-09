@@ -1,0 +1,146 @@
+# k6 load-gen for the OPcache invalidation A/B (ephpm vs php-fpm).
+#
+# constant-arrival-rate: 50 iters/s for 120s = ~6000 requests per run.
+# During each run, the driver (opcache-blip-test.sh) waits 60s of warm
+# traffic, then triggers the cache-bust:
+#   - ephpm side: `ephpm deploy` on one pod (gossip fans out to the other)
+#   - fpm side:   `kubectl rollout restart deployment/opcache-fpm`
+#
+# The k6 script writes its full summary to stdout via handleSummary so
+# the driver can jq it out of the pod logs.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k6-opcache-blip
+  namespace: opcache-demo
+data:
+  blip.js: |
+    import http from 'k6/http';
+    import { check } from 'k6';
+
+    const TARGET = __ENV.TARGET || 'opcache-demo-lb.opcache-demo.svc:8080';
+    const LABEL  = __ENV.LABEL  || 'unknown';
+
+    export const options = {
+      discardResponseBodies: false,
+      scenarios: {
+        constant: {
+          executor: 'constant-arrival-rate',
+          rate: 50,
+          timeUnit: '1s',
+          duration: '120s',
+          preAllocatedVUs: 50,
+          maxVUs: 200,
+        },
+      },
+      // Emit p95 AND p99 alongside the defaults so the driver can print
+      // the tail without having to compute it from raw samples.
+      summaryTrendStats: ['avg', 'min', 'med', 'max', 'p(95)', 'p(99)'],
+      // No global thresholds - a "failed" run is still useful data here.
+    };
+
+    export default function () {
+      const res = http.get(`http://${TARGET}/bench.php`, {
+        tags: { label: LABEL },
+        timeout: '10s',
+      });
+      check(res, {
+        'status is 200': (r) => r.status === 200,
+      });
+    }
+
+    export function handleSummary(data) {
+      // Write JSON to stdout so `kubectl logs` -> jq works.
+      return {
+        stdout: '\n===K6-SUMMARY-BEGIN===\n' +
+                JSON.stringify(data) +
+                '\n===K6-SUMMARY-END===\n',
+      };
+    }
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-blip-ephpm
+  namespace: opcache-demo
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app: k6-blip
+        target: ephpm
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: grafana/k6:0.54.0
+          command:
+            - k6
+            - run
+            - --no-usage-report
+            - /scripts/blip.js
+          env:
+            - name: TARGET
+              value: opcache-demo-lb.opcache-demo.svc:8080
+            - name: LABEL
+              value: ephpm
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: scripts
+          configMap:
+            name: k6-opcache-blip
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-blip-fpm
+  namespace: opcache-demo
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app: k6-blip
+        target: fpm
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: grafana/k6:0.54.0
+          command:
+            - k6
+            - run
+            - --no-usage-report
+            - /scripts/blip.js
+          env:
+            - name: TARGET
+              value: opcache-fpm.opcache-demo.svc:8080
+            - name: LABEL
+              value: fpm
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: scripts
+          configMap:
+            name: k6-opcache-blip
