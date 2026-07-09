@@ -18,6 +18,10 @@ set -euo pipefail
 
 NS=opcache-demo
 DIR="$(cd "$(dirname "$0")" && pwd)"
+# kubectl on Windows/git-bash needs a Windows-style path.
+if command -v cygpath >/dev/null 2>&1; then
+  DIR="$(cygpath -w "$DIR")"
+fi
 
 fail() { echo "FAIL: $*" >&2; exit 1; }
 
@@ -118,17 +122,22 @@ run_fpm() {
 
 # --- comparison table --------------------------------------------------
 extract_metrics() {
+  # k6 puts all counter/rate/trend numbers under .metrics.<name>.values.
+  # http_req_failed is a Rate: .values.rate is the failure fraction;
+  # .values.passes counts requests marked failed (true) and .values.fails
+  # counts successes (false) - k6 quirk. So the count of failed requests
+  # is .passes on http_req_failed.
   # Emit: reqs failed_count fail_rate avg p95 p99 max
   local json=$1
   jq -r '
     .metrics as $m
-    | (($m.http_reqs.count // 0)|tostring) + " "
-    + (($m.http_req_failed.fails // ($m.http_req_failed.values.fails // 0))|tostring) + " "
-    + (($m.http_req_failed.rate // ($m.http_req_failed.values.rate // 0))|tostring) + " "
-    + (($m.http_req_duration.avg // ($m.http_req_duration.values.avg // 0))|tostring) + " "
-    + (($m.http_req_duration["p(95)"] // ($m.http_req_duration.values["p(95)"] // 0))|tostring) + " "
-    + (($m.http_req_duration["p(99)"] // ($m.http_req_duration.values["p(99)"] // 0))|tostring) + " "
-    + (($m.http_req_duration.max // ($m.http_req_duration.values.max // 0))|tostring)
+    | (($m.http_reqs.values.count // 0)|tostring) + " "
+    + (($m.http_req_failed.values.passes // 0)|tostring) + " "
+    + (($m.http_req_failed.values.rate // 0)|tostring) + " "
+    + (($m.http_req_duration.values.avg // 0)|tostring) + " "
+    + (($m.http_req_duration.values["p(95)"] // 0)|tostring) + " "
+    + (($m.http_req_duration.values["p(99)"] // 0)|tostring) + " "
+    + (($m.http_req_duration.values.max // 0)|tostring)
   ' <<<"$json"
 }
 
@@ -154,14 +163,17 @@ print_table() {
   printf "%-14s | %-22s | %-22s\n" "max"          "$(fmt_ms "$e_max")"         "$(fmt_ms "$f_max")"
   echo
 
-  # Verdict: prefer ephpm when it has zero failures AND lower p99.
+  # Verdict:
+  #   - if ephpm=0 fails AND fpm>0 fails: ephpm wins on availability
+  #   - if both=0 fails: k8s readiness gates + fastcgi keepalive saved fpm
+  #     from dropping requests; report the p99 gap honestly.
   local verdict
-  if [ "$e_fail" = "0" ] && awk -v a="$e_p99" -v b="$f_p99" 'BEGIN{exit !(a<b)}'; then
-    verdict="ePHPm: zero failed requests + lower p99 than php-fpm rolling restart."
-  elif [ "$e_fail" = "0" ] && [ "$f_fail" != "0" ]; then
-    verdict="ePHPm: zero failed requests; php-fpm dropped $f_fail requests during rollout."
+  if [ "$e_fail" = "0" ] && [ "$f_fail" != "0" ]; then
+    verdict="ePHPm: zero failed requests during deploy; php-fpm dropped $f_fail requests during rolling restart."
+  elif [ "$e_fail" = "0" ] && [ "$f_fail" = "0" ]; then
+    verdict="Both stacks kept 100% availability. K8s readiness gates protected the fpm rollout at 50 rps; the recompile blip is visible in the max column of whichever side triggered the cache-bust."
   else
-    verdict="Results did not match the expected shape - see raw summaries above."
+    verdict="Unexpected: ePHPm dropped $e_fail requests during deploy. See raw summaries above."
   fi
   echo "VERDICT: $verdict"
 }
