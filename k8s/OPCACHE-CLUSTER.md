@@ -5,13 +5,16 @@ invalidation feature and compare it to the php-fpm equivalent
 (rolling restart).
 
 Both require an image containing ePHPm >= **v0.4.0** (the release that
-ships cluster invalidation). The manifests pin `ephpm/ephpm:v0.4.0-php8.4`;
-in the ephpm-lab kind cluster you can override with a locally-loaded RC:
+ships cluster invalidation). The manifests pin `ephpm/ephpm:v0.4.0-php8.4`.
+For a local kind cluster with a locally-loaded RC image, override the image
+used by the blip test with `EPHPM_IMAGE`:
 
 ```sh
-kubectl -n opcache-demo set image statefulset/opcache-demo \
-    ephpm=ephpm-v040-rc:final
+EPHPM_IMAGE=ephpm-v040-rc:final bash k8s/opcache-blip-test.sh
 ```
+
+For a normal remote cluster such as LKE, leave `EPHPM_IMAGE` unset so the
+published image in the manifest is used.
 
 ## What ships in the box
 

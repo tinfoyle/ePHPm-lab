@@ -179,8 +179,9 @@ print_table() {
 }
 
 apply_stacks
-# Preserve the image override the manifest still pins the published tag.
-kubectl -n "$NS" set image statefulset/opcache-demo ephpm=ephpm-v040-rc:final >/dev/null
+if [ -n "${EPHPM_IMAGE:-}" ]; then
+  kubectl -n "$NS" set image statefulset/opcache-demo "ephpm=${EPHPM_IMAGE}" >/dev/null
+fi
 wait_ready
 warm_all
 run_ephpm
