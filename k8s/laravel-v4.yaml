@@ -634,7 +634,7 @@ spec:
           # ePHPm >= 0.3.0 ships worker mode in the published image - no
           # source build needed. One binary per PHP minor; 8.4 matches the
           # PHP-FPM side of this lab.
-          image: ephpm/ephpm:v0.3.0-php8.4
+          image: ephpm/ephpm:v0.4.0-php8.4
           command: ["sh", "/scripts/ephpm-worker-start.sh"]
           env:
             - name: RUNTIME_NAME
@@ -724,10 +724,11 @@ spec:
               mountPath: /scripts
       containers:
         - name: ephpm
-          # Pinned: 0.3.0-php8.4 is the first image where OPcache is active
-          # in the embedded runtime on PHP 8.4 (earlier images compiled it in
-          # but it never started - every request recompiled every script).
-          image: ephpm/ephpm:v0.3.0-php8.4
+          # Pinned to the current published PHP 8.4 image for the 0.4.0 retest.
+          # Earlier images compiled OPcache in but did not start it correctly
+          # for the embedded runtime, which made request-mode framework tests
+          # look much worse than they do now.
+          image: ephpm/ephpm:v0.4.0-php8.4
           command: ["sh", "/scripts/ephpm-start.sh"]
           env:
             - name: RUNTIME_NAME
