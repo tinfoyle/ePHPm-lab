@@ -148,3 +148,16 @@ Add a real WooCommerce worker E2E test alongside the existing WordPress worker l
 
 The v5 fixture in this repo now pins `ephpm/wordpress-worker:0.1.1` so a
 worker-lane rerun exercises the fix deterministically.
+
+## v5 Retest Against `v0.1.1`
+
+**Result: blocked before the cart gate.** The v5 worker deployment was rebuilt after the pin and Composer's lock file confirmed the adapter source as `v0.1.1` (`0331ff6840cfaf64aef0f3b2033676e1bdbfa984`). On the first cart-fixture API request, the worker emitted:
+
+```text
+PHP Fatal error: Cannot redeclare class Elementor\Element_Column
+.../wp-content/plugins/elementor/includes/elements/column.php:19
+```
+
+The cart-fixture endpoint consequently returned an HTTP failure before k6 could select products or exercise `?add-to-cart=`. This is distinct from the original WooCommerce lifecycle failure: the `v0.1.1` lifecycle replay now exposes an Elementor compatibility failure in this plugin-heavy fixture.
+
+No worker browse benchmark was run. This lane remains functionally invalid on the published v5 stack until both the WooCommerce and Elementor paths pass their correctness gates.

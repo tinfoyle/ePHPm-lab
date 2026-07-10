@@ -30,7 +30,7 @@ Krayin is the useful reality check. In a real Laravel CRM at `8 iterations/s` fo
 
 The first account-free, plugin-heavy WordPress fixture put the two valid normal request paths very close together. At `8 iterations/s` for `120s`, ePHPm request mode completed `522` browse iterations to PHP-FPM/nginx with Redis's `504`, with lower average/median latency; PHP-FPM held the slightly better p95. Both had zero HTTP failures and passed the two-user WooCommerce cart-isolation gate.
 
-ePHPm's WordPress worker lane was not included in that throughput chart: `?add-to-cart=` rendered a normal `200` storefront page instead of running WooCommerce's `wp_loaded` add-to-cart handler, so no cart cookie was set and the Store API cart was empty. That is a functional blocker, not a performance result. The [follow-up investigation](docs/wordpress-worker-investigation.md) has the trace and a focused upstream regression test.
+ePHPm's WordPress worker lane was not included in that throughput chart. The initial worker adapter skipped WooCommerce's `wp_loaded` add-to-cart handler; the upstream `v0.1.1` lifecycle fix then exposed an Elementor class-redeclaration fatal on this plugin-heavy fixture before the cart gate could run. Both are functional blockers, not performance results. The [follow-up investigation](docs/wordpress-worker-investigation.md) has the trace and retest evidence.
 
 ![WordPress WooCommerce normal-request comparison](docs/assets/wordpress-v5-browse.svg)
 
