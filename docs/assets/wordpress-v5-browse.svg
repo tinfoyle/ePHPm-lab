@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 410" role="img" aria-labelledby="title desc">
+  <title id="title">WordPress WooCommerce v5 normal request comparison</title>
+  <desc id="desc">At eight iterations per second for 120 seconds, ePHPm request mode completed modestly more work and had lower average latency, while PHP-FPM had a slightly lower p95.</desc>
+  <style>
+    text { font-family: Arial, Helvetica, sans-serif; fill: #1f2937; }
+    .title { font-size: 22px; font-weight: 700; }
+    .subtitle { font-size: 14px; fill: #4b5563; }
+    .heading { font-size: 16px; font-weight: 700; }
+    .label { font-size: 14px; }
+    .value { font-size: 14px; font-weight: 700; }
+    .axis { font-size: 12px; fill: #6b7280; }
+    .grid { stroke: #d1d5db; stroke-width: 1; }
+    .fpm { fill: #475569; }
+    .request { fill: #d97706; }
+  </style>
+  <text x="38" y="38" class="title">WordPress / WooCommerce v5, normal request mode</text>
+  <text x="38" y="60" class="subtitle">8 iterations/s for 120s. Both valid lanes passed cart isolation and had zero HTTP failures.</text>
+  <text x="38" y="104" class="heading">Completed iterations</text>
+  <text x="478" y="104" class="heading">Average / p95 HTTP latency</text>
+  <line x1="195" y1="120" x2="195" y2="280" class="grid"/><line x1="295" y1="120" x2="295" y2="280" class="grid"/><line x1="395" y1="120" x2="395" y2="280" class="grid"/>
+  <text x="188" y="300" class="axis">0</text><text x="280" y="300" class="axis">250</text><text x="376" y="300" class="axis">500</text>
+  <text x="38" y="150" class="label">PHP-FPM + nginx + Redis</text><rect x="195" y="132" width="202" height="24" rx="2" class="fpm"/><text x="405" y="150" class="value">504</text>
+  <text x="38" y="220" class="label">ePHPm request + native KV</text><rect x="195" y="202" width="209" height="24" rx="2" class="request"/><text x="412" y="220" class="value">522</text>
+  <text x="478" y="142" class="axis">Average</text><text x="694" y="142" class="axis">p95</text>
+  <text x="478" y="170" class="label">PHP-FPM</text><rect x="562" y="154" width="157" height="18" rx="2" class="fpm"/><text x="726" y="170" class="value">5.49s</text><rect x="770" y="154" width="191" height="18" rx="2" class="fpm"/><text x="890" y="170" class="value" text-anchor="end">6.69s</text>
+  <text x="478" y="240" class="label">ePHPm request</text><rect x="562" y="224" width="149" height="18" rx="2" class="request"/><text x="718" y="240" class="value">5.21s</text><rect x="770" y="224" width="195" height="18" rx="2" class="request"/><text x="890" y="240" class="value" text-anchor="end">6.81s</text>
+  <text x="38" y="352" class="axis">Worker lane: excluded from throughput comparison because WooCommerce cart isolation failed (200 response, then empty Store API cart).</text>
+</svg>

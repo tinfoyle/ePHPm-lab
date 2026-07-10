@@ -1,0 +1,434 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: wordpress-v5
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wordpress-v5-nginx
+  namespace: wordpress-v5
+data:
+  default.conf: |
+    server {
+      listen 8080;
+      server_name _;
+      root /var/www/html;
+      index index.php index.html;
+
+      location / {
+        try_files $uri $uri/ /index.php?$query_string;
+      }
+
+      location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        fastcgi_param DOCUMENT_ROOT $realpath_root;
+        fastcgi_param HTTP_HOST $host;
+        fastcgi_pass 127.0.0.1:9000;
+      }
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress-v5-mysql
+  namespace: wordpress-v5
+spec:
+  selector:
+    app: wordpress-v5-mysql
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: 3306
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress-v5-mysql
+  namespace: wordpress-v5
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wordpress-v5-mysql
+  template:
+    metadata:
+      labels:
+        app: wordpress-v5-mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.4
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: rootpw
+            - name: MYSQL_DATABASE
+              value: wordpress
+            - name: MYSQL_USER
+              value: wordpress
+            - name: MYSQL_PASSWORD
+              value: wordpress
+          ports:
+            - containerPort: 3306
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "mysqladmin ping -h 127.0.0.1 -uwordpress -pwordpress"]
+            initialDelaySeconds: 15
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 150m
+              memory: 512Mi
+            limits:
+              cpu: 900m
+              memory: 1200Mi
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress-v5-redis
+  namespace: wordpress-v5
+spec:
+  selector:
+    app: wordpress-v5-redis
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress-v5-redis
+  namespace: wordpress-v5
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wordpress-v5-redis
+  template:
+    metadata:
+      labels:
+        app: wordpress-v5-redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7.4-alpine
+          ports:
+            - containerPort: 6379
+          readinessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress-v5-php-fpm
+  namespace: wordpress-v5
+spec:
+  selector:
+    app: wordpress-v5-php-fpm
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress-v5-php-fpm
+  namespace: wordpress-v5
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: wordpress-v5-php-fpm
+  template:
+    metadata:
+      labels:
+        app: wordpress-v5-php-fpm
+    spec:
+      initContainers:
+        - name: prepare-wordpress
+          image: wordpress:cli-php8.4
+          command: ["sh", "/scripts/prepare-wordpress.sh"]
+          env:
+            - name: CACHE_BACKEND
+              value: redis
+            - name: WORDPRESS_DB_HOST
+              value: wordpress-v5-mysql
+            - name: REDIS_HOST
+              value: wordpress-v5-redis
+          securityContext:
+            runAsUser: 0
+          resources:
+            requests:
+              cpu: 150m
+              memory: 256Mi
+            limits:
+              cpu: 800m
+              memory: 1024Mi
+          volumeMounts:
+            - name: app
+              mountPath: /app
+            - name: scripts
+              mountPath: /scripts
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /wp-json/ephpm-lab/v1/runtime
+              port: 8080
+              httpHeaders:
+                - name: Host
+                  value: wordpress-v5.local
+            initialDelaySeconds: 15
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 40m
+              memory: 64Mi
+            limits:
+              cpu: 150m
+              memory: 128Mi
+          volumeMounts:
+            - name: app
+              mountPath: /var/www/html
+            - name: nginx
+              mountPath: /etc/nginx/conf.d
+        - name: php-fpm
+          image: php:8.4-fpm-bookworm
+          command: ["sh", "/scripts/php-fpm-start.sh"]
+          env:
+            - name: CACHE_BACKEND
+              value: redis
+            - name: REDIS_HOST
+              value: wordpress-v5-redis
+          resources:
+            requests:
+              cpu: 150m
+              memory: 384Mi
+            limits:
+              cpu: 900m
+              memory: 1200Mi
+          volumeMounts:
+            - name: app
+              mountPath: /var/www/html
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: app
+          emptyDir: {}
+        - name: scripts
+          configMap:
+            name: wordpress-v5-scripts
+            defaultMode: 0755
+        - name: nginx
+          configMap:
+            name: wordpress-v5-nginx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress-v5-ephpm
+  namespace: wordpress-v5
+spec:
+  selector:
+    app: wordpress-v5-ephpm
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress-v5-ephpm
+  namespace: wordpress-v5
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: wordpress-v5-ephpm
+  template:
+    metadata:
+      labels:
+        app: wordpress-v5-ephpm
+    spec:
+      initContainers:
+        - name: prepare-wordpress
+          image: wordpress:cli-php8.4
+          command: ["sh", "/scripts/prepare-wordpress.sh"]
+          env:
+            - name: CACHE_BACKEND
+              value: native
+            - name: WORDPRESS_DB_HOST
+              value: wordpress-v5-mysql
+          securityContext:
+            runAsUser: 0
+          resources:
+            requests:
+              cpu: 150m
+              memory: 256Mi
+            limits:
+              cpu: 800m
+              memory: 1024Mi
+          volumeMounts:
+            - name: app
+              mountPath: /app
+            - name: scripts
+              mountPath: /scripts
+      containers:
+        - name: ephpm
+          image: ephpm/ephpm:v0.4.0-php8.4
+          command: ["sh", "/scripts/ephpm-start.sh"]
+          env:
+            - name: CACHE_BACKEND
+              value: native
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /_ephpm/ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 150m
+              memory: 384Mi
+            limits:
+              cpu: 900m
+              memory: 1200Mi
+          volumeMounts:
+            - name: app
+              mountPath: /var/www/html
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: app
+          emptyDir: {}
+        - name: scripts
+          configMap:
+            name: wordpress-v5-scripts
+            defaultMode: 0755
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress-v5-ephpm-worker
+  namespace: wordpress-v5
+spec:
+  selector:
+    app: wordpress-v5-ephpm-worker
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress-v5-ephpm-worker
+  namespace: wordpress-v5
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: wordpress-v5-ephpm-worker
+  template:
+    metadata:
+      labels:
+        app: wordpress-v5-ephpm-worker
+    spec:
+      initContainers:
+        - name: prepare-wordpress
+          image: wordpress:cli-php8.4
+          command: ["sh", "/scripts/prepare-wordpress.sh"]
+          env:
+            - name: CACHE_BACKEND
+              value: native
+            - name: WORDPRESS_DB_HOST
+              value: wordpress-v5-mysql
+          securityContext:
+            runAsUser: 0
+          resources:
+            requests:
+              cpu: 150m
+              memory: 256Mi
+            limits:
+              cpu: 800m
+              memory: 1024Mi
+          volumeMounts:
+            - name: app
+              mountPath: /app
+            - name: scripts
+              mountPath: /scripts
+        - name: install-worker
+          image: composer:2
+          command: ["sh", "/scripts/install-wordpress-worker.sh"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 700m
+              memory: 768Mi
+          volumeMounts:
+            - name: app
+              mountPath: /app
+            - name: scripts
+              mountPath: /scripts
+      containers:
+        - name: ephpm-worker
+          image: ephpm/ephpm:v0.4.0-php8.4
+          command: ["sh", "/scripts/ephpm-worker-start.sh"]
+          env:
+            - name: CACHE_BACKEND
+              value: native
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /_ephpm/ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 150m
+              memory: 512Mi
+            limits:
+              cpu: 900m
+              memory: 1400Mi
+          volumeMounts:
+            - name: app
+              mountPath: /var/www/html
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: app
+          emptyDir: {}
+        - name: scripts
+          configMap:
+            name: wordpress-v5-scripts
+            defaultMode: 0755

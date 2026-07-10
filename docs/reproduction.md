@@ -121,6 +121,26 @@ kubectl wait --for=condition=complete job/k6-v3b-ephpm-worker -n krayin-bench --
 kubectl logs job/k6-v3b-ephpm-worker -n krayin-bench
 ```
 
+## WordPress v5 WooCommerce Test
+
+The v5 fixture is deliberately application-shaped: a WordPress 7.0 store with WooCommerce, Elementor, OceanWP, Ocean Extra, Yoast, ACF, Contact Form 7, and Redis Object Cache. It seeds 1,200 products, 800 variations, 2,000 reviews, 300 posts, and 200 completed orders. The PHP-FPM lane uses nginx, `phpredis`, and Redis; the ePHPm lanes use its native WordPress cache drop-in and native KV.
+
+Render the script and k6 ConfigMaps, then deploy the backing services:
+
+```bash
+bash scripts/apply-wordpress-v5.sh
+kubectl rollout status deployment/wordpress-v5-mysql -n wordpress-v5 --timeout=300s
+kubectl rollout status deployment/wordpress-v5-redis -n wordpress-v5 --timeout=300s
+```
+
+Run only one application lane at a time. The helper runs the PHP-FPM, ePHPm request, and ePHPm worker lanes in that order. Each lane must first pass a two-user WooCommerce cart-isolation gate; a failure stops the sequence before the browse benchmark.
+
+```bash
+bash scripts/run-wordpress-v5.sh
+```
+
+The browse profile is a constant-arrival-rate run at 8 iterations/s for 120 seconds. It cycles through a product page, a catalog page, and a search route. The cart gate and resulting observations are described in [the v5 report](wordpress-v5.md).
+
 ## Cleanup
 
 ```bash
@@ -128,4 +148,5 @@ kubectl delete namespace opcache-demo --ignore-not-found
 kubectl delete namespace php-bench --ignore-not-found
 kubectl delete namespace laravel-v4 --ignore-not-found
 kubectl delete namespace krayin-bench --ignore-not-found
+kubectl delete namespace wordpress-v5 --ignore-not-found
 ```

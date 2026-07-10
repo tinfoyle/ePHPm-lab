@@ -26,6 +26,14 @@ Krayin is the useful reality check. In a real Laravel CRM at `8 iterations/s` fo
 
 ![Krayin three-way comparison](docs/assets/krayin-v3b-three-way.svg)
 
+### WordPress / WooCommerce v5
+
+The first account-free, plugin-heavy WordPress fixture put the two valid normal request paths very close together. At `8 iterations/s` for `120s`, ePHPm request mode completed `522` browse iterations to PHP-FPM/nginx with Redis's `504`, with lower average/median latency; PHP-FPM held the slightly better p95. Both had zero HTTP failures and passed the two-user WooCommerce cart-isolation gate.
+
+ePHPm's WordPress worker lane was not included in that throughput chart: it returned `200` but failed the cart gate, with an empty WooCommerce Store API cart immediately after a successful `?add-to-cart=` request. That is a functional blocker, not a performance result.
+
+![WordPress WooCommerce normal-request comparison](docs/assets/wordpress-v5-browse.svg)
+
 ### Clustered OPcache Invalidation
 
 One `ephpm deploy` invalidated OPcache across two ePHPm pods without rolling PHP processes. The PHP-FPM comparison used a rolling restart, which remained available but took longer at every recorded latency percentile.
@@ -39,6 +47,8 @@ One `ephpm deploy` invalidated OPcache across two ePHPm pods without rolling PHP
 | Arbitrary PHP app as a drop-in replacement | Start with PHP-FPM | ePHPm request mode is not a universal performance win. |
 | Laravel or another framework in normal request mode | Test both | Krayin request mode favored FPM; the synthetic Laravel request path was competitive. |
 | Persistent Laravel / Octane-style worker | Worth serious testing | Worker mode improved Krayin and won the Laravel cache workload. |
+| Plugin-heavy WordPress/WooCommerce in normal request mode | Test both, expect a close result | The v5 store fixture gave ePHPm request mode a small average-latency edge and PHP-FPM a slightly better p95. |
+| WooCommerce storefront in ePHPm worker mode (`v0.4.0`) | Do not use without a workflow-specific validation | The v5 cart-isolation gate failed despite `200` responses. |
 | Cache-heavy hot paths that can use native ePHPm KV | Strongest ePHPm case | Avoiding the FPM-to-Redis/Predis path produced the clearest advantage. |
 | Clustered app with deploy-time OPcache invalidation | Strong ePHPm operational case | One deploy signal invalidated the cluster without a PHP process rollout. |
 | Need maximum production familiarity today | PHP-FPM remains king | Extension expectations, documentation, and operator experience still matter. |
@@ -54,8 +64,10 @@ One `ephpm deploy` invalidated OPcache across two ePHPm pods without rolling PHP
 | v4 | Cache-heavy Laravel | FPM/Redis/Predis vs ePHPm request/native KV vs ePHPm worker/native KV | Worker mode won average, median, and p95 at the baseline rate. |
 | v4 pressure | Same Laravel workload | FPM/Redis/Predis vs ePHPm worker/native KV | ePHPm worker held `159.27/s` of a `160/s` target; FPM held `100.02/s`. |
 | OPcache | Two-pod deploy invalidation | ePHPm deploy vs FPM rolling restart | ePHPm won latency and avoided rolling PHP processes. |
+| v5 | Plugin-heavy WordPress/WooCommerce browse | FPM/nginx/phpredis/Redis vs ePHPm request/native KV | Very close normal-request result: ePHPm had better mean/median and completion; FPM had slightly better p95. |
+| v5 worker gate | WooCommerce cart session | ePHPm WordPress worker/native KV | Blocked: `200` responses, but cart remained empty after `?add-to-cart=`. |
 
-Raw data, workload details, and the original test narrative live in [the 0.4.0 retest report](docs/ephpm-0.4.0-retest.md), [the OPcache follow-up](docs/follow-up-opcache.md), and [the chronological lab report](docs/ephpm-vs-php-fpm-lab-report.md).
+Raw data, workload details, and the original test narrative live in [the WordPress v5 report](docs/wordpress-v5.md), [the 0.4.0 retest report](docs/ephpm-0.4.0-retest.md), [the OPcache follow-up](docs/follow-up-opcache.md), and [the chronological lab report](docs/ephpm-vs-php-fpm-lab-report.md).
 
 ## Reproduce It
 
@@ -63,7 +75,8 @@ The manifests are plain Kubernetes YAML and the load generator is k6. Start with
 
 ## What Comes Next
 
-- WordPress, Drupal, Symfony, and a more representative Laravel application.
+- Re-run the WordPress worker lane after its WooCommerce cart/session handling is corrected, then add WordPress variations with an importer-generated catalog and a page-builder-heavy home page.
+- Drupal, Symfony, and additional representative Laravel applications.
 - PHP-FPM with `phpredis`, not only Predis/TCP.
 - Larger nodes and Metrics API data so latency can be connected to CPU and memory behavior.
 - Ten to thirty minute runs, multiple worker counts, and restart/failure testing for persistent workers.
@@ -80,6 +93,7 @@ This is a reproducible lab, not a universal benchmark. The original environment 
 | `docs/` | Results, methodology, history, and reproduction instructions. |
 | `docs/assets/` | Rendered comparison charts used by this README. |
 | `k8s/` | Kubernetes manifests and k6 jobs for each benchmark phase. |
+| `wordpress-v5/` | Account-free WordPress/WooCommerce fixture, seed scripts, and k6 probes. |
 | `patches/` | Local patch retained from an older source-built worker-mode experiment. |
 | `scripts/` | Helper scripts retained from earlier source-build experiments and v4 worker runs. |
 

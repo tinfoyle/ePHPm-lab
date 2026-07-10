@@ -17,6 +17,6 @@ These manifests are organized by benchmark phase. They are intentionally plain Y
 | `k6-v4-rate8.yaml` | v4 rate-8 shared k6 script ConfigMap only. |
 | `k6-v4-rate8-ephpm-worker.yaml` | v4 rate-8 ePHPm worker job. |
 | `k6-v4-rate8-php-fpm.yaml` | v4 rate-8 PHP-FPM job. |
+| `wordpress-v5.yaml` | v5 WordPress/WooCommerce fixture: shared MySQL, Redis, PHP-FPM/nginx, ePHPm request mode, and ePHPm worker mode. Render and apply with `scripts/apply-wordpress-v5.sh`. |
 
 The manifests no longer pin pods to the original LKE node names. Kubernetes will schedule them normally on your cluster.
-
