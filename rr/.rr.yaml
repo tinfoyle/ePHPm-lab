@@ -1,0 +1,14 @@
+version: "3"
+
+server:
+  command: "php /app/worker.php"
+
+http:
+  address: 0.0.0.0:8080
+  pool:
+    num_workers: 1
+    max_jobs: 0
+
+logs:
+  mode: production
+  level: warn

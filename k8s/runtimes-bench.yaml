@@ -1,0 +1,1141 @@
+# runtimes-bench.yaml
+# Five-way PHP runtime comparison: ePHPm, nginx+php-fpm, FrankenPHP, Swoole, RoadRunner
+# Namespace: runtimes-bench
+# All pods: cpu 250m / memory 320Mi (requests = limits)
+# Fixtures and configs are fully self-contained via ConfigMaps.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: runtimes-bench
+
+# ---------------------------------------------------------------------------
+# Shared fixtures: hello.php and cpu.php
+# ---------------------------------------------------------------------------
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bench-fixtures
+  namespace: runtimes-bench
+data:
+  hello.php: |
+    <?php header('Content-Type: application/json'); echo json_encode(['ok'=>true,'t'=>microtime(true)]);
+  cpu.php: |
+    <?php $h=''; for($i=0;$i<5000;$i++){$h=hash('sha256',$h.$i);} echo json_encode(['h'=>substr($h,0,16)]);
+
+# ---------------------------------------------------------------------------
+# ePHPm config
+# ---------------------------------------------------------------------------
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bench-ephpm-config
+  namespace: runtimes-bench
+data:
+  ephpm.toml: |
+    [server]
+    listen = "0.0.0.0:8080"
+    document_root = "/var/www/html"
+    index_files = ["index.php"]
+
+    [server.request]
+    max_body_size = 1024
+    max_header_size = 4096
+    trusted_hosts = [
+      "bench-ephpm",
+      "bench-ephpm.runtimes-bench.svc",
+      "bench-ephpm.runtimes-bench.svc.cluster.local",
+      "localhost",
+      "127.0.0.1"
+    ]
+
+    [server.metrics]
+    enabled = false
+
+    [server.file_cache]
+    enabled = true
+
+    [server.security]
+    open_basedir = false
+    disable_shell_exec = true
+
+    [php]
+    max_execution_time = 30
+    memory_limit = "128M"
+
+# ---------------------------------------------------------------------------
+# nginx config for nginx+php-fpm pair
+# ---------------------------------------------------------------------------
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bench-nginx-config
+  namespace: runtimes-bench
+data:
+  default.conf: |
+    server {
+      listen 8080;
+      server_name _;
+      root /var/www/html;
+      index index.php;
+
+      location / {
+        try_files $uri $uri/ =404;
+      }
+
+      location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param SCRIPT_NAME $fastcgi_script_name;
+        fastcgi_pass 127.0.0.1:9000;
+      }
+    }
+  opcache.ini: |
+    opcache.enable=1
+    opcache.enable_cli=0
+    opcache.memory_consumption=128
+    opcache.max_accelerated_files=4000
+    opcache.validate_timestamps=0
+    opcache.revalidate_freq=0
+    opcache.jit_buffer_size=64M
+    opcache.jit=tracing
+
+# ---------------------------------------------------------------------------
+# FrankenPHP Caddyfile
+# ---------------------------------------------------------------------------
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bench-franken-config
+  namespace: runtimes-bench
+data:
+  Caddyfile: |
+    {
+      auto_https off
+      frankenphp
+    }
+
+    :8080 {
+      root /app/public
+      php_server
+    }
+
+# ---------------------------------------------------------------------------
+# Swoole server.php
+# ---------------------------------------------------------------------------
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bench-swoole-config
+  namespace: runtimes-bench
+data:
+  server.php: |
+    <?php
+    $http = new Swoole\Http\Server('0.0.0.0', 8080);
+    $http->set(['worker_num' => 1, 'reactor_num' => 1]);
+    $http->on('request', function ($req, $res) {
+        $path = $req->server['request_uri'] ?? '/';
+        if ($path === '/hello' || $path === '/hello.php') {
+            $res->header('Content-Type', 'application/json');
+            $res->end(json_encode(['ok' => true, 't' => microtime(true)]));
+            return;
+        }
+        if ($path === '/cpu' || $path === '/cpu.php') {
+            $h = '';
+            for ($i = 0; $i < 5000; $i++) { $h = hash('sha256', $h . $i); }
+            $res->header('Content-Type', 'application/json');
+            $res->end(json_encode(['h' => substr($h, 0, 16)]));
+            return;
+        }
+        $res->status(404);
+        $res->end('nf');
+    });
+    $http->start();
+
+# ---------------------------------------------------------------------------
+# RoadRunner: worker.php + .rr.yaml
+# The vendor directory is installed at pod start by an initContainer running
+# composer:2 into an emptyDir volume, avoiding any private image registry.
+# composer.json pins spiral/roadrunner ^2024 + spiral/roadrunner-http ^3.5.
+# ---------------------------------------------------------------------------
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bench-rr-config
+  namespace: runtimes-bench
+data:
+  worker.php: |
+    <?php
+    require __DIR__ . '/vendor/autoload.php';
+
+    use Nyholm\Psr7\Factory\Psr17Factory;
+    use Spiral\RoadRunner\Http\PSR7Worker;
+    use Spiral\RoadRunner\Worker;
+
+    ini_set('display_errors', 'stderr');
+
+    $factory = new Psr17Factory();
+    $worker  = new PSR7Worker(Worker::create(), $factory, $factory, $factory);
+
+    while ($req = $worker->waitRequest()) {
+        try {
+            $path = $req->getUri()->getPath();
+            if ($path === '/hello' || $path === '/hello.php') {
+                $body = json_encode(['ok' => true, 't' => microtime(true)]);
+                $resp = $factory->createResponse(200)
+                    ->withHeader('Content-Type', 'application/json');
+                $resp->getBody()->write($body);
+                $worker->respond($resp);
+                continue;
+            }
+            if ($path === '/cpu' || $path === '/cpu.php') {
+                $h = '';
+                for ($i = 0; $i < 5000; $i++) { $h = hash('sha256', $h . $i); }
+                $body = json_encode(['h' => substr($h, 0, 16)]);
+                $resp = $factory->createResponse(200)
+                    ->withHeader('Content-Type', 'application/json');
+                $resp->getBody()->write($body);
+                $worker->respond($resp);
+                continue;
+            }
+            $resp = $factory->createResponse(404);
+            $resp->getBody()->write('nf');
+            $worker->respond($resp);
+        } catch (\Throwable $e) {
+            $worker->getWorker()->error((string)$e);
+        }
+    }
+  composer.json: |
+    {
+      "require": {
+        "spiral/roadrunner": "^2024",
+        "spiral/roadrunner-http": "^3.5",
+        "nyholm/psr7": "^1.8"
+      },
+      "config": {
+        "audit": {
+          "abandoned": "ignore"
+        }
+      }
+    }
+  .rr.yaml: |
+    version: "3"
+
+    server:
+      command: "php /app/worker.php"
+
+    http:
+      address: 0.0.0.0:8080
+      pool:
+        num_workers: 1
+        max_jobs: 0
+
+    logs:
+      mode: production
+      level: warn
+
+# ---------------------------------------------------------------------------
+# k6 script (parameterized via BASE_URL and PATH_SUFFIX env vars)
+# CLASS_A runtimes use PATH_SUFFIX=/hello.php and /cpu.php
+# CLASS_B runtimes use PATH_SUFFIX=/hello and /cpu
+# ---------------------------------------------------------------------------
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bench-k6-script
+  namespace: runtimes-bench
+data:
+  bench.js: |
+    import http from 'k6/http';
+    import { check } from 'k6';
+
+    // BASE_URL: e.g. http://bench-ephpm:8080
+    // CONCURRENCY: number of VUs (default 16)
+    // DURATION: test duration (default 30s)
+    // HELLO_PATH: path for the hello route (default /hello.php)
+    // CPU_PATH: path for the cpu route (default /cpu.php)
+
+    const baseUrl    = __ENV.BASE_URL;
+    const concurrency = Number(__ENV.CONCURRENCY || 16);
+    const duration   = __ENV.DURATION || '30s';
+    const helloPath  = __ENV.HELLO_PATH || '/hello.php';
+    const cpuPath    = __ENV.CPU_PATH   || '/cpu.php';
+
+    export const options = {
+      scenarios: {
+        hello: {
+          executor: 'constant-vus',
+          vus: concurrency,
+          duration: duration,
+          env: { ROUTE: helloPath },
+          exec: 'runHello',
+          tags: { route: 'hello' },
+        },
+        cpu: {
+          executor: 'constant-vus',
+          vus: concurrency,
+          duration: duration,
+          env: { ROUTE: cpuPath },
+          exec: 'runCpu',
+          tags: { route: 'cpu' },
+          startTime: duration,
+        },
+      },
+      thresholds: {
+        http_req_failed: ['rate<0.01'],
+      },
+    };
+
+    export function runHello() {
+      const res = http.get(`${baseUrl}${helloPath}`);
+      check(res, { 'hello 200': (r) => r.status === 200 });
+    }
+
+    export function runCpu() {
+      const res = http.get(`${baseUrl}${cpuPath}`);
+      check(res, { 'cpu 200': (r) => r.status === 200 });
+    }
+
+# ===========================================================================
+# CLASS A — Drop-in runtimes (serve .php files from docroot)
+# ===========================================================================
+
+# ---------------------------------------------------------------------------
+# 1. ePHPm v0.4.0-php8.4 (ZTS)
+# ---------------------------------------------------------------------------
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bench-ephpm
+  namespace: runtimes-bench
+  labels:
+    bench-class: a
+    runtime: ephpm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bench-ephpm
+  template:
+    metadata:
+      labels:
+        app: bench-ephpm
+        bench-class: a
+        runtime: ephpm
+    spec:
+      containers:
+      - name: ephpm
+        image: ephpm/ephpm:v0.4.0-php8.4
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 250m
+            memory: 320Mi
+          limits:
+            cpu: 250m
+            memory: 320Mi
+        readinessProbe:
+          httpGet:
+            path: /_ephpm/ready
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 3
+          failureThreshold: 10
+        volumeMounts:
+        - name: fixtures
+          mountPath: /var/www/html
+          readOnly: true
+        - name: config
+          mountPath: /etc/ephpm/ephpm.toml
+          subPath: ephpm.toml
+          readOnly: true
+      volumes:
+      - name: fixtures
+        configMap:
+          name: bench-fixtures
+      - name: config
+        configMap:
+          name: bench-ephpm-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bench-ephpm
+  namespace: runtimes-bench
+spec:
+  selector:
+    app: bench-ephpm
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+# ---------------------------------------------------------------------------
+# 2. nginx + php-fpm 8.4 (two containers, opcache+JIT ini overlay)
+# ---------------------------------------------------------------------------
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bench-nginx-fpm
+  namespace: runtimes-bench
+  labels:
+    bench-class: a
+    runtime: nginx-fpm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bench-nginx-fpm
+  template:
+    metadata:
+      labels:
+        app: bench-nginx-fpm
+        bench-class: a
+        runtime: nginx-fpm
+    spec:
+      containers:
+      # nginx sidecar — handles HTTP, proxies .php to php-fpm on 127.0.0.1:9000
+      - name: nginx
+        image: nginx:1.27-alpine
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 50m
+            memory: 64Mi
+        readinessProbe:
+          httpGet:
+            path: /hello.php
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 3
+          failureThreshold: 10
+        volumeMounts:
+        - name: fixtures
+          mountPath: /var/www/html
+          readOnly: true
+        - name: nginx-conf
+          mountPath: /etc/nginx/conf.d
+          readOnly: true
+      # php-fpm main PHP executor
+      - name: php-fpm
+        # Debian (glibc) image on purpose: musl's allocator runs allocation-heavy
+        # PHP loops ~3.4x slower than glibc, which unfairly handicaps the baseline.
+        image: php:8.4-fpm
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        volumeMounts:
+        - name: fixtures
+          mountPath: /var/www/html
+          readOnly: true
+        - name: opcache-ini
+          mountPath: /usr/local/etc/php/conf.d/opcache-bench.ini
+          subPath: opcache.ini
+          readOnly: true
+      volumes:
+      - name: fixtures
+        configMap:
+          name: bench-fixtures
+      - name: nginx-conf
+        configMap:
+          name: bench-nginx-config
+          items:
+          - key: default.conf
+            path: default.conf
+      - name: opcache-ini
+        configMap:
+          name: bench-nginx-config
+          items:
+          - key: opcache.ini
+            path: opcache.ini
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bench-nginx-fpm
+  namespace: runtimes-bench
+spec:
+  selector:
+    app: bench-nginx-fpm
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+# ---------------------------------------------------------------------------
+# 3. FrankenPHP (dunglas/frankenphp ships PHP 8.5 — version noted in README)
+# ---------------------------------------------------------------------------
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bench-frankenphp
+  namespace: runtimes-bench
+  labels:
+    bench-class: a
+    runtime: frankenphp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bench-frankenphp
+  template:
+    metadata:
+      labels:
+        app: bench-frankenphp
+        bench-class: a
+        runtime: frankenphp
+    spec:
+      containers:
+      - name: frankenphp
+        image: dunglas/frankenphp:latest
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 250m
+            memory: 320Mi
+          limits:
+            cpu: 250m
+            memory: 320Mi
+        readinessProbe:
+          httpGet:
+            path: /hello.php
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 3
+          failureThreshold: 10
+        env:
+        - name: SERVER_NAME
+          value: ":8080"
+        volumeMounts:
+        - name: fixtures
+          mountPath: /app/public
+          readOnly: true
+        - name: caddyfile
+          mountPath: /etc/caddy/Caddyfile
+          subPath: Caddyfile
+          readOnly: true
+      volumes:
+      - name: fixtures
+        configMap:
+          name: bench-fixtures
+      - name: caddyfile
+        configMap:
+          name: bench-franken-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bench-frankenphp
+  namespace: runtimes-bench
+spec:
+  selector:
+    app: bench-frankenphp
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+# ===========================================================================
+# CLASS B — Worker/persistent-process runtimes (custom server code)
+# ===========================================================================
+
+# ---------------------------------------------------------------------------
+# 4. Swoole (phpswoole/swoole, PHP 8.4, 1 worker)
+# ---------------------------------------------------------------------------
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bench-swoole
+  namespace: runtimes-bench
+  labels:
+    bench-class: b
+    runtime: swoole
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bench-swoole
+  template:
+    metadata:
+      labels:
+        app: bench-swoole
+        bench-class: b
+        runtime: swoole
+    spec:
+      containers:
+      - name: swoole
+        image: phpswoole/swoole:php8.4
+        command: ["php", "/app/server.php"]
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 250m
+            memory: 320Mi
+          limits:
+            cpu: 250m
+            memory: 320Mi
+        readinessProbe:
+          httpGet:
+            path: /hello
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 3
+          failureThreshold: 10
+        volumeMounts:
+        - name: server
+          mountPath: /app/server.php
+          subPath: server.php
+          readOnly: true
+      volumes:
+      - name: server
+        configMap:
+          name: bench-swoole-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bench-swoole
+  namespace: runtimes-bench
+spec:
+  selector:
+    app: bench-swoole
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+# ---------------------------------------------------------------------------
+# 5. RoadRunner (PHP 8.4, 1 worker, PSR-7)
+#
+# REQUIRES A PRE-BUILT IMAGE.
+# The kind cluster nodes have no internet access for apk at pod start, so
+# ext-sockets cannot be compiled in-cluster. Build the image locally and
+# load it into kind (or push to a registry), then replace ROADRUNNER_IMAGE
+# below before applying.
+#
+# Build steps (run from the repo root):
+#   docker build -t bench-rr:local rr/
+#   kind load docker-image bench-rr:local --name ephpm-lab
+#   # then apply with:
+#   RR_IMAGE=bench-rr:local envsubst < k8s/runtimes-bench.yaml | kubectl apply -f -
+#   # or simply edit the image field below to bench-rr:local and kubectl apply.
+#
+# See rr/Dockerfile and rr/build-rr.sh for the full build instructions.
+# The Dockerfile suppresses advisory PKSA-xbp4-qwr2-cbjj (score=informational,
+# spiral/roadrunner package rename notice, no CVE).
+# ---------------------------------------------------------------------------
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bench-rr
+  namespace: runtimes-bench
+  labels:
+    bench-class: b
+    runtime: roadrunner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bench-rr
+  template:
+    metadata:
+      labels:
+        app: bench-rr
+        bench-class: b
+        runtime: roadrunner
+    spec:
+      containers:
+      - name: roadrunner
+        # Replace with your locally-built image: docker build -t bench-rr:local rr/
+        # kind load docker-image bench-rr:local --name <your-cluster>
+        image: bench-rr:local
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 250m
+            memory: 320Mi
+          limits:
+            cpu: 250m
+            memory: 320Mi
+        readinessProbe:
+          httpGet:
+            path: /hello
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 3
+          failureThreshold: 10
+      volumes: []
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bench-rr
+  namespace: runtimes-bench
+spec:
+  selector:
+    app: bench-rr
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+# ===========================================================================
+# k6 Jobs — one per runtime, parameterized via env
+# ===========================================================================
+
+# --- ePHPm (Class A: .php paths) ---
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-bench-ephpm
+  namespace: runtimes-bench
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: k6
+        image: grafana/k6:0.53.0
+        args:
+        - run
+        - -e
+        - BASE_URL=http://bench-ephpm:8080
+        - -e
+        - HELLO_PATH=/hello.php
+        - -e
+        - CPU_PATH=/cpu.php
+        - -e
+        - CONCURRENCY=16
+        - -e
+        - DURATION=30s
+        - /scripts/bench.js
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
+      volumes:
+      - name: scripts
+        configMap:
+          name: bench-k6-script
+
+# --- nginx+php-fpm (Class A: .php paths) ---
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-bench-nginx-fpm
+  namespace: runtimes-bench
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: k6
+        image: grafana/k6:0.53.0
+        args:
+        - run
+        - -e
+        - BASE_URL=http://bench-nginx-fpm:8080
+        - -e
+        - HELLO_PATH=/hello.php
+        - -e
+        - CPU_PATH=/cpu.php
+        - -e
+        - CONCURRENCY=16
+        - -e
+        - DURATION=30s
+        - /scripts/bench.js
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
+      volumes:
+      - name: scripts
+        configMap:
+          name: bench-k6-script
+
+# --- FrankenPHP (Class A: .php paths) ---
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-bench-frankenphp
+  namespace: runtimes-bench
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: k6
+        image: grafana/k6:0.53.0
+        args:
+        - run
+        - -e
+        - BASE_URL=http://bench-frankenphp:8080
+        - -e
+        - HELLO_PATH=/hello.php
+        - -e
+        - CPU_PATH=/cpu.php
+        - -e
+        - CONCURRENCY=16
+        - -e
+        - DURATION=30s
+        - /scripts/bench.js
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
+      volumes:
+      - name: scripts
+        configMap:
+          name: bench-k6-script
+
+# --- Swoole (Class B: bare paths) ---
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-bench-swoole
+  namespace: runtimes-bench
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: k6
+        image: grafana/k6:0.53.0
+        args:
+        - run
+        - -e
+        - BASE_URL=http://bench-swoole:8080
+        - -e
+        - HELLO_PATH=/hello
+        - -e
+        - CPU_PATH=/cpu
+        - -e
+        - CONCURRENCY=16
+        - -e
+        - DURATION=30s
+        - /scripts/bench.js
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
+      volumes:
+      - name: scripts
+        configMap:
+          name: bench-k6-script
+
+# --- RoadRunner (Class B: bare paths) ---
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-bench-rr
+  namespace: runtimes-bench
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: k6
+        image: grafana/k6:0.53.0
+        args:
+        - run
+        - -e
+        - BASE_URL=http://bench-rr:8080
+        - -e
+        - HELLO_PATH=/hello
+        - -e
+        - CPU_PATH=/cpu
+        - -e
+        - CONCURRENCY=16
+        - -e
+        - DURATION=30s
+        - /scripts/bench.js
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
+      volumes:
+      - name: scripts
+        configMap:
+          name: bench-k6-script
+
+# ===========================================================================
+# CLASS B (continued) - ePHPm worker mode (persistent engine, boot-once)
+#
+# Tuned for the 250m CPU budget: worker_count=1 (the derived default of
+# 2+ workers measurably loses ~20% at this quota - thread contention costs
+# more than parallelism buys), deep backlog, recycling effectively off.
+# The worker script uses ePHPm's raw worker primitives (no Composer), so
+# the whole entry is self-contained in this ConfigMap.
+# ===========================================================================
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bench-ephpm-worker-app
+  namespace: runtimes-bench
+data:
+  ephpm.toml: |
+    [server]
+    listen = "0.0.0.0:8080"
+    document_root = "/var/www/html"
+
+    [server.request]
+    trusted_hosts = [
+      "bench-ephpm-worker",
+      "bench-ephpm-worker.runtimes-bench.svc",
+      "bench-ephpm-worker.runtimes-bench.svc.cluster.local",
+      "localhost",
+      "127.0.0.1"
+    ]
+
+    [server.metrics]
+    enabled = false
+
+    [php]
+    mode = "worker"
+    worker_script = "worker.php"
+    # 1 worker wins at a 250m quota (matches Swoole's worker_num=1 shape).
+    worker_count = 1
+    worker_backlog = 32
+    # Effectively disable recycling: the default 500 forces a worker reboot
+    # every ~0.25s at 2000 req/s and shows up as tail latency.
+    worker_max_requests = 1000000
+  worker.php: |
+    <?php
+    declare(strict_types=1);
+
+    // Boot-once section. The boot/request counters in /hello responses
+    // prove worker mode is active: "request" climbs across requests while
+    // "boot" stays constant. If every response shows request=1, you are
+    // accidentally measuring per-request (fpm) dispatch.
+    static $bootCount = 0;
+    $bootCount++;
+    $myBoot = $bootCount;
+    $requestCount = 0;
+    error_log("[worker] booted (boot #{$myBoot})");
+
+    while (($envelope = \Ephpm\Worker\take_request()) !== null) {
+        $requestCount++;
+
+        $server = $envelope->serverVars();
+        $uri    = $server['REQUEST_URI'] ?? '/';
+        $path   = $uri;
+        if (($qpos = strpos($path, '?')) !== false) {
+            $path = substr($path, 0, $qpos);
+        }
+
+        if ($path === '/hello') {
+            $body = json_encode([
+                'ok'      => true,
+                't'       => microtime(true),
+                'boot'    => $myBoot,
+                'request' => $requestCount,
+            ], JSON_UNESCAPED_SLASHES);
+            \Ephpm\Worker\send_response(
+                200,
+                ['Content-Type' => 'application/json'],
+                $body
+            );
+            continue;
+        }
+
+        if ($path === '/cpu') {
+            // Identical loop to the cpu.php fixture used by Class A.
+            $h = '';
+            for ($i = 0; $i < 5000; $i++) {
+                $h = hash('sha256', $h . $i);
+            }
+            \Ephpm\Worker\send_response(
+                200,
+                ['Content-Type' => 'application/json'],
+                json_encode(['h' => substr($h, 0, 16)])
+            );
+            continue;
+        }
+
+        \Ephpm\Worker\send_response(
+            404,
+            ['Content-Type' => 'text/plain'],
+            "not found\n"
+        );
+    }
+
+    error_log("[worker] loop ended (boot #{$myBoot}, served {$requestCount} requests)");
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bench-ephpm-worker
+  namespace: runtimes-bench
+  labels:
+    bench-class: b
+    runtime: ephpm-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bench-ephpm-worker
+  template:
+    metadata:
+      labels:
+        app: bench-ephpm-worker
+        bench-class: b
+        runtime: ephpm-worker
+    spec:
+      containers:
+      - name: ephpm
+        image: ephpm/ephpm:v0.4.0-php8.4
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 250m
+            memory: 320Mi
+          limits:
+            cpu: 250m
+            memory: 320Mi
+        readinessProbe:
+          httpGet:
+            path: /_ephpm/ready
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 3
+          failureThreshold: 10
+        volumeMounts:
+        - name: app
+          mountPath: /var/www/html/worker.php
+          subPath: worker.php
+          readOnly: true
+        - name: app
+          mountPath: /etc/ephpm/ephpm.toml
+          subPath: ephpm.toml
+          readOnly: true
+      volumes:
+      - name: app
+        configMap:
+          name: bench-ephpm-worker-app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bench-ephpm-worker
+  namespace: runtimes-bench
+spec:
+  selector:
+    app: bench-ephpm-worker
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-bench-ephpm-worker
+  namespace: runtimes-bench
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: k6
+        image: grafana/k6:0.53.0
+        args:
+        - run
+        - -e
+        - BASE_URL=http://bench-ephpm-worker:8080
+        - -e
+        - HELLO_PATH=/hello
+        - -e
+        - CPU_PATH=/cpu
+        - -e
+        - CONCURRENCY=16
+        - -e
+        - DURATION=30s
+        - /scripts/bench.js
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
+      volumes:
+      - name: scripts
+        configMap:
+          name: bench-k6-script
