@@ -124,3 +124,27 @@ Add a real WooCommerce worker E2E test alongside the existing WordPress worker l
 - Existing WordPress login and REST worker tests remain green.
 - No unbounded hook growth or duplicate handler execution appears across repeated worker requests.
 - Only after those checks pass should the v5 worker browse benchmark be run and compared with PHP-FPM and ePHPm request mode.
+
+## Upstream Fix
+
+`ephpm/wordpress-worker` `v0.1.1` (2026-07-10) addresses this investigation:
+
+- The worker now re-fires `init` and `wp_loaded` for every request (and
+  `shutdown` after the response), with boot-time `did_action` counters reset
+  so plugins observe php-fpm-identical hook counts from the first request.
+  File-level bootstrap (plugin/theme loading) remains one-shot.
+- The regression test specified above is implemented in the adapter's `e2e/`
+  suite, including the two-user cart-isolation variant: it fails 1/5 against
+  `v0.1.0` and passes 5/5 against `v0.1.1` (verified on WordPress 6.7.1 +
+  WooCommerce 9.4.3; this lab's WP 7.0 + WC 10.9.4 combination is the
+  remaining confirmation).
+- One additional finding from implementing the fix: WooCommerce's session
+  handler singleton retains boot-time cookie state even with the lifecycle
+  actions replayed. The release ships an optional mu-plugin
+  (`muplugins/woocommerce-session-per-request.php`) that rebinds it per
+  request, documented in the adapter README alongside the new explicit
+  lifecycle contract (what fires once vs per request, and the observable
+  differences from php-fpm).
+
+The v5 fixture in this repo now pins `ephpm/wordpress-worker:0.1.1` so a
+worker-lane rerun exercises the fix deterministically.
