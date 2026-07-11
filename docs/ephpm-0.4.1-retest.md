@@ -56,3 +56,21 @@ paired rerun (781 vs 731) — run-window drift, not a regression.
   ePHPm's v0.4.2 line.
 - Absolute worker hello RPS here is RTT-bound in podman/WSL (~980 ceiling);
   the version delta is valid but the lab's cluster numbers are higher.
+
+## Manifest validation (Kind)
+
+The `db.php` lane and `[db.sqlite]` config in `k8s/runtimes-bench.yaml`
+were applied to a local Kind cluster (namespace + fixtures ConfigMap +
+`bench-ephpm-config` + the ePHPm Deployment/Service, unmodified from this
+PR) against `ephpm/ephpm:v0.4.1-php8.4`. The pod passed its readiness
+probe (SQLite proxy up) and served:
+
+```
+GET /hello.php -> {"ok":true,"t":...}
+GET /db.php    -> {"ok":true,"queries":10,"sum":10}
+```
+
+Full-request timing (HTTP + 10 sequential PDO queries): 4.7-7.9 ms
+(~0.5 ms/query) — the v0.4.1 profile, not the ~444 ms v0.4.0 stall.
+Confirms the config and fixture work as shipped; a dedicated k6 DB
+scenario remains a follow-up.
