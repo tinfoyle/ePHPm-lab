@@ -1,0 +1,24 @@
+# Variant C — the proposed ePHPm serve-mode default: never stat cached
+# scripts. File edits are invisible until an explicit invalidation
+# (`ephpm deploy` / `ephpm cache reset`) or a process restart.
+#
+# Identical to a-vt1-freq2.toml except for the ini_overrides pair; see that
+# file for the commentary on limits / redis_compat / cluster_invalidation.
+# (Here redis_compat + cluster_invalidation are not just measurement hygiene:
+# they are the deploy story this variant relies on.)
+
+[server]
+listen = "0.0.0.0:8080"
+document_root = "/web"
+
+[kv.redis_compat]
+enabled = true
+listen = "127.0.0.1:6379"
+
+[opcache]
+cluster_invalidation = true
+
+[php]
+ini_overrides = [
+  ["opcache.validate_timestamps", "0"],
+]

@@ -1,0 +1,34 @@
+# Variant A — current ePHPm image behavior (PHP defaults):
+# every cached script's mtime is re-stat()ed at most once per 2 s window.
+#
+# The three variant files are identical except for the [php] ini_overrides
+# pair at the bottom — diff them to confirm.
+
+[server]
+listen = "0.0.0.0:8080"
+document_root = "/web"
+
+# Deliberately NO [server.limits] section (= unlimited). The image's baked-in
+# /etc/ephpm/ephpm.toml ships per_ip_rate = 500, which clamps a single-IP load
+# generator to 500 req/s of 200s and serves the rest as 429s — that has
+# tainted lab numbers before (see RUNTIMES-BENCH.md caveats). This file
+# replaces the baked-in config entirely, and the driver additionally asserts
+# a 100% [200] status distribution.
+
+[kv.redis_compat]
+# `ephpm deploy` / `ephpm cache reset` write the version key over RESP.
+enabled = true
+listen = "127.0.0.1:6379"
+
+[opcache]
+# Explicit: on a single node the per-request watcher defaults OFF, and the
+# variant-C staleness lane needs `ephpm cache reset` to take effect. Set
+# identically in all three variants so the watcher's (sub-microsecond) KV
+# check is a constant, not a variable.
+cluster_invalidation = true
+
+[php]
+ini_overrides = [
+  ["opcache.validate_timestamps", "1"],
+  ["opcache.revalidate_freq", "2"],
+]

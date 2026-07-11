@@ -93,6 +93,7 @@ This is a reproducible lab, not a universal benchmark. The original environment 
 | `docs/` | Results, methodology, history, and reproduction instructions. |
 | `docs/assets/` | Rendered comparison charts used by this README. |
 | `k8s/` | Kubernetes manifests and k6 jobs for each benchmark phase. |
+| `opcache-timestamps/` | Local podman bench: what `opcache.validate_timestamps` costs (on/2s vs on/60s vs off) plus asserted staleness contracts. |
 | `wordpress-v5/` | Account-free WordPress/WooCommerce fixture, seed scripts, and k6 probes. |
 | `patches/` | Local patch retained from an older source-built worker-mode experiment. |
 | `scripts/` | Helper scripts retained from earlier source-build experiments and v4 worker runs. |

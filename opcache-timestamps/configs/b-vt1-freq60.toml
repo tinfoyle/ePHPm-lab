@@ -1,0 +1,22 @@
+# Variant B — the middle setting: timestamps still validated, but each
+# script's mtime is re-stat()ed at most once per 60 s window.
+#
+# Identical to a-vt1-freq2.toml except for the ini_overrides pair; see that
+# file for the commentary on limits / redis_compat / cluster_invalidation.
+
+[server]
+listen = "0.0.0.0:8080"
+document_root = "/web"
+
+[kv.redis_compat]
+enabled = true
+listen = "127.0.0.1:6379"
+
+[opcache]
+cluster_invalidation = true
+
+[php]
+ini_overrides = [
+  ["opcache.validate_timestamps", "1"],
+  ["opcache.revalidate_freq", "60"],
+]

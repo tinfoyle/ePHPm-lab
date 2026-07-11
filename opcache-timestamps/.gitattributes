@@ -1,0 +1,5 @@
+# container/start.sh is copied into the container and run by /bin/sh, and
+# run-bench.sh is documented as runnable from Windows git-bash — CRLF would
+# break both, so pin everything in this bench to LF regardless of the
+# cloning machine's core.autocrlf.
+* text eol=lf
