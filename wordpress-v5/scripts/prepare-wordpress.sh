@@ -20,6 +20,29 @@ fi
 mkdir -p "$APP/wp-content/mu-plugins" "$APP/wp-content/uploads"
 cp /scripts/v5-benchmark.php "$APP/wp-content/mu-plugins/v5-benchmark.php"
 
+# Worker-mode compat mu-plugins from the ephpm/wordpress-worker package.
+# These are shipped in vendor/ephpm/wordpress-worker/muplugins/ by
+# install-wordpress-worker.sh but not auto-dropped by Composer, so we copy
+# them into wp-content/mu-plugins/ here (only when the worker package is
+# actually installed — the php-fpm lane skips this).
+#
+#   woocommerce-session-per-request.php — WC guest-cart per-request rebind
+#     (needed for the cart-integrity gate under worker mode; ships in
+#     ephpm/wordpress-worker v0.1.1+).
+#   elementor-idempotent-lifecycle.php — Elementor `Cannot redeclare
+#     class Element_Column` fix under per-request init replay (ships in
+#     ephpm/wordpress-worker v0.1.2+).
+#
+# Without these, the WordPress worker lane is functionally invalid on
+# this plugin-heavy fixture — see docs/wordpress-worker-investigation.md.
+if [ -d "$APP/vendor/ephpm/wordpress-worker/muplugins" ]; then
+  for mu in woocommerce-session-per-request.php elementor-idempotent-lifecycle.php; do
+    if [ -f "$APP/vendor/ephpm/wordpress-worker/muplugins/$mu" ]; then
+      cp "$APP/vendor/ephpm/wordpress-worker/muplugins/$mu" "$APP/wp-content/mu-plugins/$mu"
+    fi
+  done
+fi
+
 cat > "$APP/wp-config.php" <<'PHP'
 <?php
 define( 'DB_NAME', 'wordpress' );

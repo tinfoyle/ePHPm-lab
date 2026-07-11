@@ -160,4 +160,22 @@ PHP Fatal error: Cannot redeclare class Elementor\Element_Column
 
 The cart-fixture endpoint consequently returned an HTTP failure before k6 could select products or exercise `?add-to-cart=`. This is distinct from the original WooCommerce lifecycle failure: the `v0.1.1` lifecycle replay now exposes an Elementor compatibility failure in this plugin-heavy fixture.
 
-No worker browse benchmark was run. This lane remains functionally invalid on the published v5 stack until both the WooCommerce and Elementor paths pass their correctness gates.
+No worker browse benchmark was run. This lane remained functionally invalid on the published v5 stack until both the WooCommerce and Elementor paths passed their correctness gates.
+
+## Elementor Fix in `v0.1.2`
+
+`ephpm/wordpress-worker` `v0.1.2` (2026-07-11) addresses the Elementor block with a targeted mu-plugin:
+
+- **Root cause (source-verified):** `Elements_Manager::require_files()` at `includes/managers/elements.php:461-463` uses `require` (not `require_once`) for `column.php`, `section.php`, and `repeater.php`. That method is called from `Elements_Manager::__construct()` (line 58), which is instantiated by `Plugin::init_components()`, which runs from `Plugin::init()` registered on the `init` action at priority 0 (`plugin.php:833`). Under FPM, `init` fires once per process — correct. Under the worker's per-request replay, request N ≥ 2 re-runs `require` and the classes redeclare.
+- **Fix shape:** the adapter now ships `muplugins/elementor-idempotent-lifecycle.php` mirroring the WooCommerce mu-plugin pattern. At `wp_loaded` `PHP_INT_MAX` (once, boot-time) it calls `remove_action('init', [\Elementor\Plugin::instance(), 'init'], 0)` — strips exactly the callback that triggers the redeclaring chain. All other Elementor hooks (REST, admin, editor, widget-render) remain registered.
+- **Reproduction verified** upstream against Elementor 4.1.4 + WP 7.0 + `ephpm/ephpm:v0.4.2-php8.4`: without the mu-plugin, every request kills a worker (each is recycled and the next request lands on a fresh boot); with it, one worker survives 5+ consecutive requests with zero `Cannot redeclare` fatals. See [PR #4](https://github.com/ephpm/wordpress-worker/pull/4) for the traced source path and worker logs.
+
+This lab's `wordpress-v5/scripts/install-wordpress-worker.sh` now pins `ephpm/wordpress-worker:0.1.2`, and `prepare-wordpress.sh` copies both mu-plugins (`woocommerce-session-per-request.php`, `elementor-idempotent-lifecycle.php`) from `vendor/ephpm/wordpress-worker/muplugins/` into `wp-content/mu-plugins/`. Both are required — the `v0.1.1` retest didn't actually install either.
+
+## Acceptance Criteria For a v0.1.2 Retest
+
+Re-run the v5 worker lane with `v0.1.2` pinned and the mu-plugins dropped in. Expected outcomes:
+- No `Cannot redeclare` fatal in the worker log across the cart-integrity gate iterations.
+- The two-user cart gate (`cart-integrity.js`) passes with `200`, correct item echoes, and zero cross-talk between the two virtual users.
+- Store API cart contents survive the next request and are isolated by cookie jar.
+- Only after those pass should the v5 worker browse benchmark be run and compared with PHP-FPM and ePHPm request mode.
