@@ -337,7 +337,7 @@ data:
 # ===========================================================================
 
 # ---------------------------------------------------------------------------
-# 1. ePHPm v0.4.1-php8.4 (ZTS)
+# 1. ePHPm v0.4.2-php8.4 (ZTS)
 # ---------------------------------------------------------------------------
 ---
 apiVersion: apps/v1
@@ -362,7 +362,7 @@ spec:
     spec:
       containers:
       - name: ephpm
-        image: ephpm/ephpm:v0.4.1-php8.4
+        image: ephpm/ephpm:v0.4.2-php8.4
         ports:
         - containerPort: 8080
         resources:
@@ -1115,7 +1115,7 @@ spec:
     spec:
       containers:
       - name: ephpm
-        image: ephpm/ephpm:v0.4.1-php8.4
+        image: ephpm/ephpm:v0.4.2-php8.4
         ports:
         - containerPort: 8080
         resources:

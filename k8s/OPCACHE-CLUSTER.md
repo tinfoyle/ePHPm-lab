@@ -5,7 +5,7 @@ invalidation feature and compare it to the php-fpm equivalent
 (rolling restart).
 
 Both require an image containing ePHPm >= **v0.4.0** (the release that
-ships cluster invalidation). The manifests pin `ephpm/ephpm:v0.4.1-php8.4`.
+ships cluster invalidation). The manifests pin `ephpm/ephpm:v0.4.2-php8.4`.
 For a local kind cluster with a locally-loaded RC image, override the image
 used by the blip test with `EPHPM_IMAGE`:
 

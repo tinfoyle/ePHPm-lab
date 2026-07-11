@@ -11,18 +11,22 @@ from the ePHPm-lab report's next-tests list.
 
 | Runtime | Image | PHP |
 |---------|-------|-----|
-| ePHPm v0.4.1 | `ephpm/ephpm:v0.4.1-php8.4` | 8.4 ZTS, glibc |
+| ePHPm v0.4.2 | `ephpm/ephpm:v0.4.2-php8.4` | 8.4 ZTS, glibc |
 | nginx + php-fpm | `nginx:1.27-alpine` + `php:8.4-fpm` (Debian) | 8.4 NTS, glibc |
 | FrankenPHP | `dunglas/frankenphp:latest` | 8.5 ZTS, glibc (image default; see caveat) |
 | Swoole | `phpswoole/swoole:php8.4` | 8.4 NTS, glibc |
 | RoadRunner | `php:8.4-cli-alpine` + `ghcr.io/roadrunner-server/roadrunner:2024` | 8.4 NTS, musl (see caveat) |
-| ePHPm v0.4.1 worker mode | `ephpm/ephpm:v0.4.1-php8.4` (`[php] mode = "worker"`) | 8.4 ZTS, glibc |
+| ePHPm v0.4.2 worker mode | `ephpm/ephpm:v0.4.2-php8.4` (`[php] mode = "worker"`) | 8.4 ZTS, glibc |
 
-The manifests pin **v0.4.1**. For the v0.4.0-vs-v0.4.1 before/after
-(cpu.php flipped from a ~2x loss to a win; db.php latency dropped 101x),
-see [docs/ephpm-0.4.1-retest.md](docs/ephpm-0.4.1-retest.md). The new
-`db.php` lane (10 PDO queries on ePHPm's in-process SQLite) is what
-exposes the v0.4.1 database-latency fix.
+The manifests pin **v0.4.2**. v0.4.2 carries forward v0.4.1's
+database-latency fix (101x on db.php) and cpu.php SHA-NI restoration,
+and adds HTTP `TCP_NODELAY` on the accept path (-13% p99 on hello),
+worker-mode dispatch fastpath (lazy Envelope + single `$_SERVER`
+build), mimalloc + LTO, and KV/query-stats micro-trims. For the
+v0.4.0-vs-v0.4.1 before/after, see
+[docs/ephpm-0.4.1-retest.md](docs/ephpm-0.4.1-retest.md). The `db.php`
+lane (10 PDO queries on ePHPm's in-process SQLite) still exposes the
+database-latency fix and is now the reproduction path for that number.
 
 ## Class A vs Class B
 
