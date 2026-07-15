@@ -11,22 +11,48 @@ from the ePHPm-lab report's next-tests list.
 
 | Runtime | Image | PHP |
 |---------|-------|-----|
-| ePHPm v0.4.2 | `ephpm/ephpm:v0.4.2-php8.4` | 8.4 ZTS, glibc |
+| ePHPm v0.5.0 | `ephpm/ephpm:v0.5.0-php8.4` | 8.4 ZTS, glibc |
 | nginx + php-fpm | `nginx:1.27-alpine` + `php:8.4-fpm` (Debian) | 8.4 NTS, glibc |
 | FrankenPHP | `dunglas/frankenphp:latest` | 8.5 ZTS, glibc (image default; see caveat) |
 | Swoole | `phpswoole/swoole:php8.4` | 8.4 NTS, glibc |
 | RoadRunner | `php:8.4-cli-alpine` + `ghcr.io/roadrunner-server/roadrunner:2024` | 8.4 NTS, musl (see caveat) |
-| ePHPm v0.4.2 worker mode | `ephpm/ephpm:v0.4.2-php8.4` (`[php] mode = "worker"`) | 8.4 ZTS, glibc |
+| ePHPm v0.5.0 worker mode | `ephpm/ephpm:v0.5.0-php8.4` (`[php] mode = "worker"`) | 8.4 ZTS, glibc |
 
-The manifests pin **v0.4.2**. v0.4.2 carries forward v0.4.1's
-database-latency fix (101x on db.php) and cpu.php SHA-NI restoration,
-and adds HTTP `TCP_NODELAY` on the accept path (-13% p99 on hello),
-worker-mode dispatch fastpath (lazy Envelope + single `$_SERVER`
-build), mimalloc + LTO, and KV/query-stats micro-trims. For the
-v0.4.0-vs-v0.4.1 before/after, see
-[docs/ephpm-0.4.1-retest.md](docs/ephpm-0.4.1-retest.md). The `db.php`
-lane (10 PDO queries on ePHPm's in-process SQLite) still exposes the
-database-latency fix and is now the reproduction path for that number.
+The manifests pin **v0.5.0**, which carries the whole v0.4.x line
+(v0.4.1: 101x db.php latency fix + SHA-NI; v0.4.2: HTTP `TCP_NODELAY`
+-13% p99, worker dispatch fastpath, mimalloc/LTO) and adds v0.5.0's
+**resource-aware autotuning**. For the v0.4.0-vs-v0.4.1 before/after,
+see [docs/ephpm-0.4.1-retest.md](docs/ephpm-0.4.1-retest.md). The
+`db.php` lane (10 PDO queries on ePHPm's in-process SQLite) remains
+the reproduction path for the database-latency number.
+
+> **Autotuning changes the baseline (v0.5.0+).** In serve mode ePHPm
+> now reads the pod's cgroup CPU/memory limits at boot and derives an
+> opcache / memory_limit / realpath / assertions profile, including
+> `opcache.validate_timestamps=0` — exactly the class of hand-tuning
+> the php-fpm lane gets via its ini overlay, applied automatically.
+> Every ePHPm lane in this suite therefore runs a *different effective
+> PHP config* on v0.5.0 than the same manifest produced on v0.4.x, so
+> numbers recorded before/after the bump are **not directly
+> comparable**. When re-recording, capture each lane's
+> `autotune (serve): ...` startup log line as evidence of the profile
+> that actually ran. Include-heavy workloads (Krayin, WordPress) are
+> expected to benefit most; tiny-script lanes (`hello`) should be
+> unchanged. Operator config still overrides any derived value.
+
+## Experimental: Turso engine db lane (disabled)
+
+`k8s/runtimes-bench.yaml` now carries a `bench-ephpm-turso` lane —
+identical to the ePHPm db.php lane but with the **experimental**
+`[db.sqlite] engine = "turso"` knob (the Rust SQLite rewrite). It ships
+`replicas: 0` because the knob merged *after* the v0.5.0 tag; enable it
+only once the image pin moves past v0.5.0 (`kubectl scale
+deploy/bench-ephpm-turso --replicas=1`), confirm the pod log shows the
+experimental-engine startup warning, then run the db.php profile against
+it. Context: Phase 1 microbenchmarks at the litewire seam measured 28x
+point-SELECT and 4x concurrent-writer throughput vs the C engine; this
+lane measures what survives of that through the full
+mysqlnd → MySQL-wire → engine path on a resource-limited pod.
 
 ## Class A vs Class B
 
