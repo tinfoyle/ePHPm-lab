@@ -206,3 +206,18 @@ The unchanged browse profile (`8 iterations/s` for `120s`) did not meet the harn
 | HTTP p95 | 27.49s |
 
 The k6 job correctly failed because `http_req_failed < 1%` and `wordpress_v5_ok > 99%` were crossed. This is not evidence that the original WordPress worker functional bug remains: the cart gate is green. It is evidence that the present worker capacity or request handling is not reliable at this arrival rate. The next investigation should capture the failing response status/body, repeat at multiple worker counts and lower rates, and pair results with CPU and memory metrics before making a performance comparison.
+
+## Capacity Rerun on `g6-standard-2` (2026-07-16)
+
+Metrics Server was installed and the worker was moved from a small `g6-standard-1` node to a fresh `g6-standard-2` node. The rerun used four workers, a pod limit of `1800m` CPU and `2Gi` memory, and the unchanged 8/s for 120s browse profile.
+
+| Metric | Small node / 2 workers | `g6-standard-2` / 4 workers |
+| --- | ---: | ---: |
+| Completed iterations | 341 | 524 |
+| Dropped iterations | 618 | 437 |
+| HTTP failures | 3.79% | 0.00% |
+| Application checks | 96.48% | 100.00% |
+| HTTP average | 7.78s | 3.91s |
+| HTTP p95 | 27.49s | 17.38s |
+
+During the larger-node run the worker used about 1.35 CPU cores and the node sampled at about 68% CPU. The original run repeatedly approached the `900m` pod CPU limit and saturated its node. The scale-up therefore resolves the browse reliability failure and strongly implicates CPU capacity, while the remaining dropped iterations show that this exact four-worker deployment has not yet reached the full 8/s target.
