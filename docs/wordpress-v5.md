@@ -79,6 +79,8 @@ The worker finding is equally important: ePHPm's WordPress worker architecture i
 
 **Dedicated-CPU rerun (2026-07-16).** The unchanged 8/s profile was then run on a fresh `g6-dedicated-4` node (4 dedicated vCPU, 8 GB RAM; 3920m CPU allocatable). The worker retained four workers and received a `3600m` CPU / `4Gi` memory limit. It completed `730` iterations, dropped `231`, had zero HTTP failures and 100% application checks, with 2.05s average and 8.94s p95 latency. This is the strongest valid WordPress worker result in the lab so far. It still falls short of the requested 8/s arrival rate, so it demonstrates substantial capacity scaling rather than full saturation-free throughput.
 
+**Dedicated-node three-way rerun (2026-07-16).** The PHP-FPM/nginx/Redis and ePHPm request/native-KV lanes were then rerun one at a time on the same `g6-dedicated-4` node and unchanged 8/s profile. PHP-FPM used nginx plus a 3300m FPM CPU limit; ePHPm request used a 3600m CPU limit. Both returned zero HTTP failures and 100% application checks. PHP-FPM completed 953 iterations (7.91/s), dropped 8, averaged 413.71ms, and had a 1.11s p95. ePHPm request completed 960 (7.87/s), dropped 0, averaged 191.98ms, and had a 246.22ms p95. The existing worker result on this node was functionally clean but completed 730 (5.65/s) with 231 drops. Under this specific plugin-heavy fixture and resource envelope, ePHPm request mode is the fastest valid lane; worker mode requires additional worker-count tuning before it is comparable.
+
 ## Reproduce
 
 Use [the v5 fixture](../wordpress-v5/README.md) and [reproduction guide](reproduction.md#wordpress-v5-woocommerce-test). The harness now makes correctness checks a hard k6 threshold, so it will stop before browse load if the cart workflow fails.
