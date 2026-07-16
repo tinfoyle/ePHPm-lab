@@ -77,6 +77,8 @@ The worker finding is equally important: ePHPm's WordPress worker architecture i
 
 **Capacity rerun (2026-07-16).** Metrics Server confirmed the original worker pod was CPU-bound near its `900m` limit. Moving the lane to a `g6-standard-2` node (2 vCPU), raising the pod to `1800m` CPU / `2Gi` memory, and using four workers made the same 8/s profile functionally clean: `524` completed iterations, `437` dropped, zero HTTP failures, 100% application checks, 3.91s average latency, and 17.38s p95. The sampled pod used about 1.35 cores and its node about 68% CPU. This is strong evidence that the earlier failure was materially CPU-capacity-driven, but the run still did not sustain the requested 8/s and is not yet a final PHP-FPM comparison.
 
+**Dedicated-CPU rerun (2026-07-16).** The unchanged 8/s profile was then run on a fresh `g6-dedicated-4` node (4 dedicated vCPU, 8 GB RAM; 3920m CPU allocatable). The worker retained four workers and received a `3600m` CPU / `4Gi` memory limit. It completed `730` iterations, dropped `231`, had zero HTTP failures and 100% application checks, with 2.05s average and 8.94s p95 latency. This is the strongest valid WordPress worker result in the lab so far. It still falls short of the requested 8/s arrival rate, so it demonstrates substantial capacity scaling rather than full saturation-free throughput.
+
 ## Reproduce
 
 Use [the v5 fixture](../wordpress-v5/README.md) and [reproduction guide](reproduction.md#wordpress-v5-woocommerce-test). The harness now makes correctness checks a hard k6 threshold, so it will stop before browse load if the cart workflow fails.

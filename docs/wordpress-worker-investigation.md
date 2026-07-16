@@ -221,3 +221,18 @@ Metrics Server was installed and the worker was moved from a small `g6-standard-
 | HTTP p95 | 27.49s | 17.38s |
 
 During the larger-node run the worker used about 1.35 CPU cores and the node sampled at about 68% CPU. The original run repeatedly approached the `900m` pod CPU limit and saturated its node. The scale-up therefore resolves the browse reliability failure and strongly implicates CPU capacity, while the remaining dropped iterations show that this exact four-worker deployment has not yet reached the full 8/s target.
+
+## Dedicated-CPU Rerun (2026-07-16)
+
+To test whether the remaining queueing was still compute-bound, the unchanged 8/s profile ran on a dedicated `g6-dedicated-4` node with four dedicated vCPU and 8 GB RAM (`3920m` CPU allocatable). The same worker adapter and fixture were used, with four workers and a `3600m` CPU / `4Gi` memory pod limit.
+
+| Metric | `g6-standard-2` / 4 workers | `g6-dedicated-4` / 4 workers |
+| --- | ---: | ---: |
+| Completed iterations | 524 | 730 |
+| Dropped iterations | 437 | 231 |
+| HTTP failures | 0.00% | 0.00% |
+| Application checks | 100.00% | 100.00% |
+| HTTP average | 3.91s | 2.05s |
+| HTTP p95 | 17.38s | 8.94s |
+
+The dedicated node improves completion by 39%, cuts dropped work by 47%, and roughly halves average and p95 latency. This validates the capacity hypothesis without overstating it: the profile remains below its 8/s target, so the next scientific step is a worker-count sweep on this node rather than a final cross-runtime claim.
