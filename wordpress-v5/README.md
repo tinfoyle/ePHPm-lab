@@ -29,3 +29,13 @@ The init script logs and stores the resolved active-plugin list in the `ephpm_la
 - 200 completed orders
 
 The Kubernetes manifest is [k8s/wordpress-v5.yaml](../k8s/wordpress-v5.yaml). Use `bash scripts/apply-wordpress-v5.sh` to render the script and k6 ConfigMaps before applying it.
+
+## Worker Capacity Sweep
+
+`scripts/run-wordpress-v5-worker-sweep.sh` reruns the ePHPm worker lane across configurable request rates and worker counts. It records k6 output plus ten-second Metrics API samples for the worker pod and the node carrying it. Defaults are rates `2 4 6 8`, worker counts `2 4 6`, and a `120s` run per point. For a shorter exploratory sweep, set `RATES`, `WORKER_COUNTS`, and `DURATION`, for example:
+
+```bash
+RATES="2 4 6 8" WORKER_COUNTS="2 4 6" DURATION=120s bash scripts/run-wordpress-v5-worker-sweep.sh
+```
+
+Results are written below `.generated/` and intentionally stay out of version control until they have been reviewed and summarized in the v5 report.

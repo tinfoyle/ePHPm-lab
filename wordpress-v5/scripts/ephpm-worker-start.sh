@@ -1,6 +1,14 @@
 #!/bin/sh
 set -eu
 
+WORKER_COUNT="${WORKER_COUNT:-2}"
+case "${WORKER_COUNT}" in
+  *[!0-9]*|'')
+    echo "WORKER_COUNT must be a positive integer" >&2
+    exit 1
+    ;;
+esac
+
 cat > /tmp/wordpress-v5-worker.toml <<'TOML'
 [server]
 listen = "0.0.0.0:8080"
@@ -22,7 +30,7 @@ disable_shell_exec = true
 mode = "worker"
 worker_script = "vendor/bin/ephpm-wp-worker"
 worker_populate_superglobals = true
-worker_count = 2
+worker_count = __WORKER_COUNT__
 worker_max_requests = 250
 worker_backlog = 128
 worker_boot_timeout = 90
@@ -44,5 +52,7 @@ per_ip_burst = 200
 memory_limit = "128MB"
 eviction_policy = "allkeys-lru"
 TOML
+
+sed -i "s/__WORKER_COUNT__/${WORKER_COUNT}/" /tmp/wordpress-v5-worker.toml
 
 exec ephpm serve --config /tmp/wordpress-v5-worker.toml

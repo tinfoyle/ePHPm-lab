@@ -6,9 +6,9 @@ export const options = {
   scenarios: {
     browse: {
       executor: 'constant-arrival-rate',
-      rate: 8,
+      rate: Number(__ENV.RATE || 8),
       timeUnit: '1s',
-      duration: '120s',
+      duration: __ENV.DURATION || '120s',
       preAllocatedVUs: 8,
       maxVUs: 24,
     },
@@ -65,7 +65,7 @@ export default function () {
   metric.add(response.timings.duration);
   const passed = check(response, {
     'status 200': (r) => r.status === 200,
-    'not WordPress error': (r) => !r.body.includes('There has been a critical error'),
+    'not WordPress error': (r) => typeof r.body === 'string' && !r.body.includes('There has been a critical error'),
   });
   ok.add(passed);
   sleep(0.05);
