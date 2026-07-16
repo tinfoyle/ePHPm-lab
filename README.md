@@ -30,7 +30,7 @@ Krayin is the useful reality check. In a real Laravel CRM at `8 iterations/s` fo
 
 The first account-free, plugin-heavy WordPress fixture put the two valid normal request paths very close together. At `8 iterations/s` for `120s`, ePHPm request mode completed `522` browse iterations to PHP-FPM/nginx with Redis's `504`, with lower average/median latency; PHP-FPM held the slightly better p95. Both had zero HTTP failures and passed the two-user WooCommerce cart-isolation gate.
 
-ePHPm's WordPress worker lane was not included in that throughput chart. The initial worker adapter skipped WooCommerce's `wp_loaded` add-to-cart handler; the upstream `v0.1.1` lifecycle fix then exposed an Elementor class-redeclaration fatal on this plugin-heavy fixture before the cart gate could run. Both are functional blockers, not performance results. The [follow-up investigation](docs/wordpress-worker-investigation.md) has the trace and retest evidence.
+ePHPm's WordPress worker lane is now functionally valid on the same fixture: `ephpm/ephpm:v0.5.0-php8.4` plus `ephpm/wordpress-worker:v0.1.2` passed the two-user WooCommerce cart-isolation gate, including item isolation and zero HTTP failures. It is not yet a throughput result: its first 8/s browse run on this small-node, two-worker configuration failed the reliability threshold with `12` non-200 responses, `618` dropped iterations, `7.78s` average latency, and `27.49s` p95. The [follow-up investigation](docs/wordpress-worker-investigation.md) has the original failures, the upstream fixes, and the current retest evidence.
 
 ![WordPress WooCommerce normal-request comparison](docs/assets/wordpress-v5-browse.svg)
 
@@ -48,7 +48,7 @@ One `ephpm deploy` invalidated OPcache across two ePHPm pods without rolling PHP
 | Laravel or another framework in normal request mode | Test both | Krayin request mode favored FPM; the synthetic Laravel request path was competitive. |
 | Persistent Laravel / Octane-style worker | Worth serious testing | Worker mode improved Krayin and won the Laravel cache workload. |
 | Plugin-heavy WordPress/WooCommerce in normal request mode | Test both, expect a close result | The v5 store fixture gave ePHPm request mode a small average-latency edge and PHP-FPM a slightly better p95. |
-| WooCommerce storefront in ePHPm worker mode (`v0.4.0`) | Do not use without a workflow-specific validation | The v5 cart-isolation gate failed despite `200` responses. |
+| WooCommerce storefront in ePHPm worker mode (`v0.5.0`) | Functionally valid, but do not treat it as production-ready performance evidence | The cart gate passes; the first small-node 8/s browse run misses its reliability thresholds. |
 | Cache-heavy hot paths that can use native ePHPm KV | Strongest ePHPm case | Avoiding the FPM-to-Redis/Predis path produced the clearest advantage. |
 | Clustered app with deploy-time OPcache invalidation | Strong ePHPm operational case | One deploy signal invalidated the cluster without a PHP process rollout. |
 | Need maximum production familiarity today | PHP-FPM remains king | Extension expectations, documentation, and operator experience still matter. |
@@ -65,7 +65,7 @@ One `ephpm deploy` invalidated OPcache across two ePHPm pods without rolling PHP
 | v4 pressure | Same Laravel workload | FPM/Redis/Predis vs ePHPm worker/native KV | ePHPm worker held `159.27/s` of a `160/s` target; FPM held `100.02/s`. |
 | OPcache | Two-pod deploy invalidation | ePHPm deploy vs FPM rolling restart | ePHPm won latency and avoided rolling PHP processes. |
 | v5 | Plugin-heavy WordPress/WooCommerce browse | FPM/nginx/phpredis/Redis vs ePHPm request/native KV | Very close normal-request result: ePHPm had better mean/median and completion; FPM had slightly better p95. |
-| v5 worker gate | WooCommerce cart session | ePHPm WordPress worker/native KV | Blocked: `200` responses, but cart remained empty after `?add-to-cart=`. |
+| v5 worker retest | WooCommerce cart session and browse | ePHPm WordPress worker/native KV | Cart gate passes on `v0.5.0`/adapter `v0.1.2`; the first 8/s browse run fails reliability thresholds and needs tuning/retest. |
 
 Raw data, workload details, and the original test narrative live in [the WordPress v5 report](docs/wordpress-v5.md), [the 0.4.0 retest report](docs/ephpm-0.4.0-retest.md), [the OPcache follow-up](docs/follow-up-opcache.md), and [the chronological lab report](docs/ephpm-vs-php-fpm-lab-report.md).
 

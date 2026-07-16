@@ -2,7 +2,7 @@
 
 **Run date:** 2026-07-09 (America/New_York)
 
-**ePHPm image:** `ephpm/ephpm:v0.4.0-php8.4`
+**Original ePHPm image:** `ephpm/ephpm:v0.4.0-php8.4`
 **Baseline image:** `php:8.4-fpm-bookworm` behind `nginx:1.27-alpine`
 
 ## Question
@@ -44,7 +44,8 @@ Before measuring browse traffic, k6 used two independent virtual users to add di
 | --- | --- | --- |
 | PHP-FPM + Redis | Pass | 14/14 checks; zero HTTP failures. |
 | ePHPm request + native KV | Pass | 14/14 checks; zero HTTP failures. |
-| ePHPm worker + native KV | **Fail** | `?add-to-cart=` returned `200`, then the Store API cart was empty for both users. |
+| ePHPm worker + native KV (`v0.4.0`) | **Fail** | `?add-to-cart=` returned `200`, then the Store API cart was empty for both users. |
+| ePHPm worker + native KV (`v0.5.0`, adapter `v0.1.2`) | **Pass** | 14/14 checks; zero HTTP failures; each user saw only its own item. |
 
 Follow-up tracing identified the immediate `v0.1.0` cause: WooCommerce registers its `add_to_cart_action()` handler on WordPress's `wp_loaded` action, but the persistent worker adapter booted WordPress once and did not replay `wp_loaded` for each request. The `?add-to-cart=` request therefore rendered a normal `200` storefront page instead of performing the add-to-cart redirect or setting the WooCommerce session cookie. ePHPm's `wordpress-worker` `v0.1.1` added lifecycle replay, but the v5 retest then hit a separate Elementor `Element_Column` redeclaration fatal before the cart gate could run. See [the worker investigation](wordpress-worker-investigation.md). I did not run the worker browse benchmark after either failure. Its short response times would not make it a valid WooCommerce result while ordinary cart behavior is broken.
 
@@ -72,7 +73,7 @@ This is not a universal runtime victory. In this constrained, cache-backed store
 
 The worker finding is equally important: ePHPm's WordPress worker architecture is promising in principle, but `v0.4.0` did not pass this WooCommerce session workflow. Until that behavior is fixed and retested, PHP-FPM is the validated choice for this worker-style storefront path.
 
-**Update (v0.1.2, 2026-07-11).** The Elementor `Element_Column` redeclaration fatal that blocked the `v0.1.1` retest is addressed upstream in `ephpm/wordpress-worker` `v0.1.2` with a targeted `elementor-idempotent-lifecycle.php` mu-plugin (mirrors the WC pattern). This lab's install script now pins `v0.1.2` and copies both worker-compat mu-plugins from vendor into `wp-content/mu-plugins/`, so the v5 worker lane can finally exercise the cart-integrity gate end-to-end. See [the worker investigation](wordpress-worker-investigation.md) for the traced root cause and the acceptance criteria for the pending v0.1.2 retest.
+**Update (v0.5.0 / adapter v0.1.2, 2026-07-16).** The Elementor `Element_Column` redeclaration fatal and WooCommerce cart lifecycle failure are resolved for this fixture. The worker lane passed the cart gate end-to-end with 14/14 checks and zero HTTP failures. The first worker browse run used the same `8 iterations/s` for `120s` profile, but is not comparable to the valid normal-request runs: it completed `341` iterations, dropped `618`, returned `12` non-200 responses (3.79% HTTP failure rate), and recorded 7.78s average / 27.49s p95 latency. Its `wordpress_v5_ok` rate was 96.48%, below the 99% threshold. The deployment had two explicit workers on the same small-node cluster, so this establishes a remaining worker-capacity or stability problem, not a WordPress functional regression. It needs worker-count and resource tuning, response-code tracing, and a clean rerun before being charted against PHP-FPM or ePHPm request mode. See [the worker investigation](wordpress-worker-investigation.md).
 
 ## Reproduce
 

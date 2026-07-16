@@ -1,12 +1,12 @@
 # WordPress Worker Follow-Up: WooCommerce Cart Lifecycle
 
-**Status:** reproducible functional compatibility bug; not fixed in this lab.
+**Status:** original functional compatibility bugs fixed in the v5 fixture; browse-load reliability remains under investigation.
 
 **Affected shape:** ePHPm WordPress persistent worker plus WooCommerce guest cart.
 
 **Not affected in this lab:** PHP-FPM/nginx and ePHPm normal request mode.
 
-This is the follow-up to the failed WordPress v5 worker cart gate. It is a functional investigation, not a throughput result. The worker lane must remain excluded from performance comparison until this flow passes.
+This is the follow-up to the failed WordPress v5 worker cart gate. The original WooCommerce lifecycle and Elementor compatibility failures are resolved in the v0.5.0/v0.1.2 retest. The worker lane remains excluded from performance comparison until it can also sustain the v5 browse profile within its reliability thresholds.
 
 ## Exact Environment
 
@@ -170,7 +170,7 @@ No worker browse benchmark was run. This lane remained functionally invalid on t
 - **Fix shape:** the adapter now ships `muplugins/elementor-idempotent-lifecycle.php` mirroring the WooCommerce mu-plugin pattern. At `wp_loaded` `PHP_INT_MAX` (once, boot-time) it calls `remove_action('init', [\Elementor\Plugin::instance(), 'init'], 0)` — strips exactly the callback that triggers the redeclaring chain. All other Elementor hooks (REST, admin, editor, widget-render) remain registered.
 - **Reproduction verified** upstream against Elementor 4.1.4 + WP 7.0 + `ephpm/ephpm:v0.4.2-php8.4`: without the mu-plugin, every request kills a worker (each is recycled and the next request lands on a fresh boot); with it, one worker survives 5+ consecutive requests with zero `Cannot redeclare` fatals. See [PR #4](https://github.com/ephpm/wordpress-worker/pull/4) for the traced source path and worker logs.
 
-This lab's `wordpress-v5/scripts/install-wordpress-worker.sh` now pins `ephpm/wordpress-worker:0.1.2`, and `prepare-wordpress.sh` copies both mu-plugins (`woocommerce-session-per-request.php`, `elementor-idempotent-lifecycle.php`) from `vendor/ephpm/wordpress-worker/muplugins/` into `wp-content/mu-plugins/`. Both are required — the `v0.1.1` retest didn't actually install either.
+This lab's `wordpress-v5/scripts/install-wordpress-worker.sh` pins `ephpm/wordpress-worker:0.1.2` and, after Composer has populated `vendor/`, copies both mu-plugins (`woocommerce-session-per-request.php`, `elementor-idempotent-lifecycle.php`) into `wp-content/mu-plugins/`. Both are required — the `v0.1.1` retest didn't actually install either.
 
 ## Acceptance Criteria For a v0.1.2 Retest
 
@@ -179,3 +179,30 @@ Re-run the v5 worker lane with `v0.1.2` pinned and the mu-plugins dropped in. Ex
 - The two-user cart gate (`cart-integrity.js`) passes with `200`, correct item echoes, and zero cross-talk between the two virtual users.
 - Store API cart contents survive the next request and are isolated by cookie jar.
 - Only after those pass should the v5 worker browse benchmark be run and compared with PHP-FPM and ePHPm request mode.
+
+## v0.5.0 / v0.1.2 Retest (2026-07-16)
+
+The retest used `ephpm/ephpm:v0.5.0-php8.4` and Composer-resolved `ephpm/wordpress-worker:v0.1.2` (`7b08bbe50d1ac4235a9dfdd98c9cea537a618a02`). The lab deployment contains both required adapter mu-plugins. An initial lab integration mistake had copied them from `vendor/` in an earlier init container, before Composer had installed the package; the copy now happens in `install-wordpress-worker.sh` after `composer require` completes.
+
+### Correctness Result
+
+The unchanged two-user cart gate passed: 14/14 checks and zero HTTP failures. Both workers booted cleanly, and there was no Elementor redeclaration fatal. Each virtual user added a distinct product and saw only its own cart item through the next Store API request.
+
+This resolves the workflow blocker that invalidated the earlier worker results.
+
+### Browse Result
+
+The unchanged browse profile (`8 iterations/s` for `120s`) did not meet the harness reliability thresholds on the two-worker, small-LKE-node deployment:
+
+| Metric | Result |
+| --- | ---: |
+| Completed iterations | 341 |
+| Dropped iterations | 618 |
+| HTTP failures | 3.79% (12 non-200 responses) |
+| `wordpress_v5_ok` | 96.48% |
+| HTTP average | 7.78s |
+| HTTP median | 2.46s |
+| HTTP p90 | 24.45s |
+| HTTP p95 | 27.49s |
+
+The k6 job correctly failed because `http_req_failed < 1%` and `wordpress_v5_ok > 99%` were crossed. This is not evidence that the original WordPress worker functional bug remains: the cart gate is green. It is evidence that the present worker capacity or request handling is not reliable at this arrival rate. The next investigation should capture the failing response status/body, repeat at multiple worker counts and lower rates, and pair results with CPU and memory metrics before making a performance comparison.
