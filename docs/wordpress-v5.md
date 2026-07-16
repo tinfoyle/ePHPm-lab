@@ -72,6 +72,8 @@ This is not a universal runtime victory. In this constrained, cache-backed store
 
 The worker finding is equally important: ePHPm's WordPress worker architecture is promising in principle, but `v0.4.0` did not pass this WooCommerce session workflow. Until that behavior is fixed and retested, PHP-FPM is the validated choice for this worker-style storefront path.
 
+**Update (v0.1.2, 2026-07-11).** The Elementor `Element_Column` redeclaration fatal that blocked the `v0.1.1` retest is addressed upstream in `ephpm/wordpress-worker` `v0.1.2` with a targeted `elementor-idempotent-lifecycle.php` mu-plugin (mirrors the WC pattern). This lab's install script now pins `v0.1.2` and copies both worker-compat mu-plugins from vendor into `wp-content/mu-plugins/`, so the v5 worker lane can finally exercise the cart-integrity gate end-to-end. See [the worker investigation](wordpress-worker-investigation.md) for the traced root cause and the acceptance criteria for the pending v0.1.2 retest.
+
 ## Reproduce
 
 Use [the v5 fixture](../wordpress-v5/README.md) and [reproduction guide](reproduction.md#wordpress-v5-woocommerce-test). The harness now makes correctness checks a hard k6 threshold, so it will stop before browse load if the cart workflow fails.
