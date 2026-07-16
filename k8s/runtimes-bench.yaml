@@ -23,6 +23,26 @@ data:
     <?php header('Content-Type: application/json'); echo json_encode(['ok'=>true,'t'=>microtime(true)]);
   cpu.php: |
     <?php $h=''; for($i=0;$i<5000;$i++){$h=hash('sha256',$h.$i);} echo json_encode(['h'=>substr($h,0,16)]);
+  # db.php: 10 sequential PDO queries against ePHPm's in-process SQLite
+  # (pdo_mysql -> 127.0.0.1:3306, no external database). This is the lane
+  # that exposed the ~44ms/query Nagle stall in v0.4.0 (10 queries => ~444ms
+  # per request) and its fix in v0.4.1 (sub-millisecond per query). Only the
+  # ePHPm stacks serve this route; FPM has no built-in database, so the DB
+  # comparison is ePHPm-version-vs-version, not ePHPm-vs-FPM.
+  db.php: |
+    <?php
+    header('Content-Type: application/json');
+    $pdo = new PDO('mysql:host=127.0.0.1;port=3306;dbname=bench', 'root', '', [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    ]);
+    $pdo->exec('CREATE TABLE IF NOT EXISTS t (id INTEGER PRIMARY KEY, v TEXT)');
+    $pdo->exec("INSERT OR IGNORE INTO t (id, v) VALUES (1, 'seed')");
+    $sum = 0;
+    for ($i = 0; $i < 10; $i++) {
+        $row = $pdo->query('SELECT id, v FROM t WHERE id = 1')->fetch(PDO::FETCH_ASSOC);
+        $sum += $row['id'];
+    }
+    echo json_encode(['ok' => true, 'queries' => 10, 'sum' => $sum]);
 
 # ---------------------------------------------------------------------------
 # ePHPm config
@@ -64,6 +84,60 @@ data:
     [php]
     max_execution_time = 30
     memory_limit = "128M"
+
+    # In-process SQLite exposed on the MySQL wire so db.php's pdo_mysql
+    # connects to 127.0.0.1:3306 with no external database. This is the
+    # lane that measures the v0.4.1 litewire nodelay/coalescing fix.
+    [db.sqlite]
+    path = "/tmp/bench.db"
+
+    [db.sqlite.proxy]
+    mysql_listen = "127.0.0.1:3306"
+
+# ---------------------------------------------------------------------------
+# ePHPm config variant: EXPERIMENTAL Turso Database engine for the db lane.
+# Identical to bench-ephpm-config except [db.sqlite] engine = "turso".
+# Requires an ePHPm image NEWER than v0.5.0 (the engine knob merged after
+# the v0.5.0 tag) — see the bench-ephpm-turso Deployment comment.
+# ---------------------------------------------------------------------------
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bench-ephpm-turso-config
+  namespace: runtimes-bench
+data:
+  ephpm.toml: |
+    [server]
+    listen = "0.0.0.0:8080"
+    document_root = "/var/www/html"
+    index_files = ["index.php"]
+
+    [server.request]
+    trusted_hosts = ["bench-ephpm-turso", "bench-ephpm-turso.runtimes-bench", "localhost", "127.0.0.1"]
+
+    [server.metrics]
+    enabled = true
+
+    [server.security]
+    open_basedir = false
+    disable_shell_exec = true
+
+    [php]
+    max_execution_time = 30
+    memory_limit = "128M"
+
+    # Same db.php lane, EXPERIMENTAL Turso Database engine (Rust SQLite
+    # rewrite) instead of the genuine SQLite C engine. Phase 1 microbench
+    # at the litewire seam measured 28x point-SELECT / 4x concurrent
+    # writes vs rusqlite — this lane exists to measure what survives of
+    # that through mysqlnd -> wire -> engine on a real k8s pod.
+    [db.sqlite]
+    path = "/tmp/bench.db"
+    engine = "turso"
+
+    [db.sqlite.proxy]
+    mysql_listen = "127.0.0.1:3306"
 
 # ---------------------------------------------------------------------------
 # nginx config for nginx+php-fpm pair
@@ -308,7 +382,7 @@ data:
 # ===========================================================================
 
 # ---------------------------------------------------------------------------
-# 1. ePHPm v0.4.0-php8.4 (ZTS)
+# 1. ePHPm v0.5.0-php8.4 (ZTS)
 # ---------------------------------------------------------------------------
 ---
 apiVersion: apps/v1
@@ -333,7 +407,7 @@ spec:
     spec:
       containers:
       - name: ephpm
-        image: ephpm/ephpm:v0.4.0-php8.4
+        image: ephpm/ephpm:v0.5.0-php8.4
         ports:
         - containerPort: 8080
         resources:
@@ -374,6 +448,86 @@ metadata:
 spec:
   selector:
     app: bench-ephpm
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+# ---------------------------------------------------------------------------
+# 1b. ePHPm + EXPERIMENTAL Turso engine — db lane only. DISABLED by default
+#     (replicas: 0): the `[db.sqlite] engine` knob merged AFTER the v0.5.0
+#     tag, so the pinned image rejects/ignores it. Enable ONLY when the
+#     image pin moves past v0.5.0:
+#       kubectl scale deploy/bench-ephpm-turso -n runtimes-bench --replicas=1
+#     Verify the engine actually engaged before trusting any number: the
+#     pod log must show the experimental-engine startup warning. Then run
+#     the db.php k6 profile against http://bench-ephpm-turso:8080/db.php
+#     and compare against the bench-ephpm lane's db.php result.
+# ---------------------------------------------------------------------------
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bench-ephpm-turso
+  namespace: runtimes-bench
+  labels:
+    bench-class: a
+    runtime: ephpm-turso
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: bench-ephpm-turso
+  template:
+    metadata:
+      labels:
+        app: bench-ephpm-turso
+        bench-class: a
+        runtime: ephpm-turso
+    spec:
+      containers:
+      - name: ephpm
+        image: ephpm/ephpm:v0.5.0-php8.4
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 250m
+            memory: 320Mi
+          limits:
+            cpu: 250m
+            memory: 320Mi
+        readinessProbe:
+          httpGet:
+            path: /_ephpm/ready
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 3
+          failureThreshold: 10
+        volumeMounts:
+        - name: fixtures
+          mountPath: /var/www/html
+          readOnly: true
+        - name: config
+          mountPath: /etc/ephpm/ephpm.toml
+          subPath: ephpm.toml
+          readOnly: true
+      volumes:
+      - name: fixtures
+        configMap:
+          name: bench-fixtures
+      - name: config
+        configMap:
+          name: bench-ephpm-turso-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bench-ephpm-turso
+  namespace: runtimes-bench
+spec:
+  selector:
+    app: bench-ephpm-turso
   ports:
   - name: http
     port: 8080
@@ -970,6 +1124,13 @@ data:
     # Effectively disable recycling: the default 500 forces a worker reboot
     # every ~0.25s at 2000 req/s and shows up as tail latency.
     worker_max_requests = 1000000
+
+    # In-process SQLite on the MySQL wire (see the classic config above).
+    [db.sqlite]
+    path = "/tmp/bench.db"
+
+    [db.sqlite.proxy]
+    mysql_listen = "127.0.0.1:3306"
   worker.php: |
     <?php
     declare(strict_types=1);
@@ -1023,6 +1184,31 @@ data:
             continue;
         }
 
+        if ($path === '/db' || $path === '/db.php') {
+            // Same 10-query workload as the db.php fixture. A persistent
+            // PDO handle across requests is the worker-mode advantage; the
+            // v0.4.1 nodelay fix removes the per-query stall underneath it.
+            static $pdo = null;
+            if ($pdo === null) {
+                $pdo = new PDO('mysql:host=127.0.0.1;port=3306;dbname=bench', 'root', '', [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                ]);
+                $pdo->exec('CREATE TABLE IF NOT EXISTS t (id INTEGER PRIMARY KEY, v TEXT)');
+                $pdo->exec("INSERT OR IGNORE INTO t (id, v) VALUES (1, 'seed')");
+            }
+            $sum = 0;
+            for ($i = 0; $i < 10; $i++) {
+                $row = $pdo->query('SELECT id, v FROM t WHERE id = 1')->fetch(PDO::FETCH_ASSOC);
+                $sum += $row['id'];
+            }
+            \Ephpm\Worker\send_response(
+                200,
+                ['Content-Type' => 'application/json'],
+                json_encode(['ok' => true, 'queries' => 10, 'sum' => $sum])
+            );
+            continue;
+        }
+
         \Ephpm\Worker\send_response(
             404,
             ['Content-Type' => 'text/plain'],
@@ -1054,7 +1240,7 @@ spec:
     spec:
       containers:
       - name: ephpm
-        image: ephpm/ephpm:v0.4.0-php8.4
+        image: ephpm/ephpm:v0.5.0-php8.4
         ports:
         - containerPort: 8080
         resources:
