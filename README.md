@@ -36,7 +36,7 @@ The current, fair comparison uses the same plugin-heavy fixture, MySQL database,
 | ePHPm request/native KV | **960** | **0** | **192ms** | **246ms** | 0% |
 | ePHPm worker/native KV | 730 | 231 | 2.05s | 8.94s | 0% |
 
-ePHPm request mode is the fastest valid lane in this exact WordPress browse workload. PHP-FPM is close in sustained rate and remains the stronger boring-production default. ePHPm worker mode now passes the two-user WooCommerce cart-isolation gate and is stable under load, but it needs a dedicated worker-count sweep before it is a competitive throughput option. The [follow-up investigation](docs/wordpress-worker-investigation.md) preserves the original functional failures, fixes, and capacity evidence.
+In this one sequential dedicated-node run, ePHPm request mode was the fastest valid lane. PHP-FPM is close in sustained rate and remains the stronger boring-production default. The result needs randomized repeated runs, alternating lane order, and a production-like cache mix before it should influence an adoption decision. ePHPm worker mode now passes the two-user WooCommerce cart-isolation gate and is stable under load, but it needs a dedicated worker-count sweep before it is a competitive throughput option. The [follow-up investigation](docs/wordpress-worker-investigation.md) preserves the original functional failures, fixes, and capacity evidence.
 
 ![WordPress WooCommerce normal-request comparison](docs/assets/wordpress-v5-browse.svg)
 
@@ -53,9 +53,9 @@ One `ephpm deploy` invalidated OPcache across two ePHPm pods without rolling PHP
 | Arbitrary PHP app as a drop-in replacement | Start with PHP-FPM | ePHPm request mode is not a universal performance win. |
 | Laravel or another framework in normal request mode | Test both | Krayin request mode favored FPM; the synthetic Laravel request path was competitive. |
 | Persistent Laravel / Octane-style worker | Worth serious testing | Worker mode improved Krayin and won the Laravel cache workload. |
-| Plugin-heavy WordPress/WooCommerce in normal request mode | ePHPm request mode is worth serious testing | On the dedicated-node v5 rerun it had the best completion, no drops, and materially lower latency than FPM. |
-| WooCommerce storefront in ePHPm worker mode (`v0.5.0`) | Functionally valid; tune before adoption | Cart isolation and load reliability pass, but four workers did not yet sustain the 8/s target. |
-| Cache-heavy hot paths that can use native ePHPm KV | Strongest ePHPm case | Avoiding the FPM-to-Redis/Predis path produced the clearest advantage. |
+| Plugin-heavy WordPress/WooCommerce in normal request mode | Promising; reproduce against your store | One sequential dedicated-node run favored ePHPm request mode, but it needs randomized repeated runs and a production-like cache mix before it supports an adoption claim. |
+| WooCommerce storefront in ePHPm worker mode (`v0.5.0`) | Functionally valid; tune before adoption | The cart gate and HTTP correctness pass, but four workers did not sustain the 8/s target. |
+| Cache-heavy hot paths that can use native ePHPm KV | Strongest lab signal, not a universal result | Avoiding the FPM-to-Redis/Predis path produced the clearest advantage; PHP-FPM with `phpredis` remains a required fairness rerun. |
 | Clustered app with deploy-time OPcache invalidation | Strong ePHPm operational case | One deploy signal invalidated the cluster without a PHP process rollout. |
 | Need maximum production familiarity today | PHP-FPM remains king | Extension expectations, documentation, and operator experience still matter. |
 
