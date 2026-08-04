@@ -83,6 +83,8 @@ The worker finding is equally important: ePHPm's WordPress worker architecture i
 
 **v0.6.0 worker compatibility retest (2026-08-04).** The worker lane was upgraded to `ephpm/ephpm:v0.6.0-php8.4` on the same dedicated node, with the same four workers and 3600m CPU / 4Gi memory limit. The unchanged two-user WooCommerce cart gate passed 14/14 checks with zero HTTP failures. The first 8/s browse pass completed 733 iterations, dropped 228, returned zero HTTP failures and 100% application checks, with a 2.00s average and 8.56s p95. This is effectively flat against the v0.5.0 worker result (730 completed, 231 dropped, 2.05s average, 8.94s p95). It verifies compatibility and does not establish a v0.6.0 performance improvement; randomized repeated three-way trials remain required.
 
+The matching v0.6.0 request-mode pass completed 961 iterations with zero drops, zero HTTP failures, 183.51ms average latency, and 234.91ms p95. That is directionally better than the prior v0.5.0 request pass (960, zero drops, 191.98ms average, 246.22ms p95), but it is one sequential run and therefore does not establish a release-level performance gain.
+
 ## Reproduce
 
 Use [the v5 fixture](../wordpress-v5/README.md) and [reproduction guide](reproduction.md#wordpress-v5-woocommerce-test). The harness now makes correctness checks a hard k6 threshold, so it will stop before browse load if the cart workflow fails.
