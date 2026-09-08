@@ -1,0 +1,61 @@
+{
+  "category": "lifecycle",
+  "run_id": "20260908T230051Z-lifecycle",
+  "pid": 222,
+  "cases": [
+    {
+      "label": "missing BPF capabilities fails closed",
+      "exit": 1,
+      "stdout": "\u001b[2m2026-09-08T23:00:51.264026Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mephpm\u001b[0m\u001b[2m:\u001b[0m starting ePHPm \u001b[3mlisten\u001b[0m\u001b[2m=\u001b[0m127.0.0.1:18089 \u001b[3mdocument_root\u001b[0m\u001b[2m=\u001b[0m/srv/ephpm/default\n\u001b[2m2026-09-08T23:00:51.275089Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mephpm\u001b[0m\u001b[2m:\u001b[0m multi-tenant hardening ON: disabled pcntl_*/posix process control, pfsockopen, SysV shm_*/sem_*/msg_*, dl, mail, and opcache_reset/opcache_compile_file via disable_functions; mysqli/pgsql/odbc.allow_persistent=0. network_egress_externally_managed=true, so the reachability-only fsockopen block is LIFTED (egress is enforced below PHP); pfsockopen stays disabled (persistence, not reachability). Cost: persistent DB/socket connections are off (Redis pconnect, mysqli p:, pfsockopen). Disable the whole preset with [server.security] multi_tenant_hardening = false.\n\u001b[2m2026-09-08T23:00:51.275125Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mephpm\u001b[0m\u001b[2m:\u001b[0m multi-tenant hardening: OPcache userland API fully locked down (opcache.restrict_api sentinel + opcache_invalidate/get_status/get_configuration/is_script_cached disabled).\n\u001b[2m2026-09-08T23:00:51.275286Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mephpm\u001b[0m\u001b[2m:\u001b[0m autotune (serve): cpu_quota=unlimited mem=47739MiB (system-total) -> concurrency=4[explicit] opcache.memory_consumption=512MB memory_limit=11790M interned=32MB jit_buffer=64MB (jit=disable) max_files=20000 realpath=16M/ttl=600 validate_timestamps=0 assertions=-1\n\u001b[2m2026-09-08T23:00:51.275316Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mephpm\u001b[0m\u001b[2m:\u001b[0m opcache JIT OFF — multi-tenant default (sites_dir set): per-vhost OPcache invalidation never reclaims JIT buffer, so deploy churn would silently exhaust it; set [php] opcache_jit = \"tracing\" to override\n\u001b[2m2026-09-08T23:00:51.275321Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mephpm\u001b[0m\u001b[2m:\u001b[0m opcache timestamp validation OFF (serve mode); code changes require `ephpm deploy` or `ephpm cache reset`\n\u001b[2m2026-09-08T23:00:51.275325Z\u001b[0m \u001b[33m WARN\u001b[0m \u001b[2mephpm\u001b[0m\u001b[2m:\u001b[0m opcache timestamp validation is OFF but the RESP listener is disabled ([kv.redis_compat] enabled = false) — `ephpm deploy` / `ephpm cache reset` cannot reach this server, so cached code can only be refreshed by restarting. Enable the RESP listener, or set [php] opcache_validate_timestamps = true.\n\u001b[2m2026-09-08T23:00:51.294188Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mephpm_php\u001b[0m\u001b[2m:\u001b[0m PHP runtime initialized (libphp linked)\n\u001b[2m2026-09-08T23:00:51.303715Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mephpm_php\u001b[0m\u001b[2m:\u001b[0m KV store wired to PHP native functions\n\u001b[2m2026-09-08T23:00:51.303978Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mephpm_php\u001b[0m\u001b[2m:\u001b[0m per-site db resolver wired to PHP native functions\n\u001b[2m2026-09-08T23:00:51.304236Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mephpm_server\u001b[0m\u001b[2m:\u001b[0m per-site database isolation enabled (one Turso database per virtual host), reachable both through the in-process ephpm_db_* bridge and through pdo_mysql via per-site credentials on the MySQL wire listener \u001b[3mmax_open_dbs\u001b[0m\u001b[2m=\u001b[0m16\n\u001b[2m2026-09-08T23:00:51.310793Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mephpm_php\u001b[0m\u001b[2m:\u001b[0m PHP runtime shut down\n",
+      "stderr": "Running as unit: security-63df707f60eae18e-policy.service; invocation ID: 8fad7a3596ce4b228bb80b46c13144f1\nerror: failed to bind the multi-tenant MySQL wire listener on 127.0.0.1:3306: Address already in use (os error 98)\nFinished with result: exit-code\nMain processes terminated with: code=exited/status=1\nService runtime: 75ms\nCPU time consumed: 67ms\nMemory peak: 256.0K\nMemory swap peak: 0B\n",
+      "listener_open": false
+    },
+    {
+      "label": "before restart",
+      "pid": 222,
+      "bpf": "CgroupPath\nID       AttachType      AttachFlags     Name           \n/sys/fs/cgroup/system.slice/ephpm-lab.service\n494133   cgroup_inet4_bind multi           vhost_bind4                    \n494134   cgroup_inet6_bind multi           vhost_bind6                    \n494135   cgroup_inet4_connect multi           vhost_connect4                 \n494136   cgroup_inet6_connect multi           vhost_connect6                 \n494128   cgroup_device   multi           sd_devices                     \n"
+    },
+    {
+      "label": "stopped",
+      "exit": 0,
+      "listener_open": false,
+      "bpf": "",
+      "inventory_note": "Filtered to vhost programs at commit; full original inventory retained in guest."
+    },
+    {
+      "label": "restarted",
+      "exit": 0,
+      "new_pid": "820\n",
+      "bpf": "CgroupPath\nID       AttachType      AttachFlags     Name           \n/sys/fs/cgroup/system.slice/ephpm-lab.service\n496907   cgroup_inet4_bind multi           vhost_bind4                    \n496908   cgroup_inet6_bind multi           vhost_bind6                    \n496909   cgroup_inet4_connect multi           vhost_connect4                 \n496910   cgroup_inet6_connect multi           vhost_connect6                 \n496897   cgroup_device   multi           sd_devices                     \n",
+      "responses": [
+        {
+          "status": 200,
+          "headers": {
+            "content-type": "application/json",
+            "content-length": "18",
+            "date": "Tue, 08 Sep 2026 23:00:52 GMT"
+          },
+          "body": "{\"status\":\"ready\"}",
+          "json": {
+            "status": "ready"
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "content-type": "application/json",
+            "content-length": "18",
+            "date": "Tue, 08 Sep 2026 23:00:52 GMT"
+          },
+          "body": "{\"status\":\"ready\"}",
+          "json": {
+            "status": "ready"
+          }
+        }
+      ]
+    }
+  ],
+  "cleanup": {
+    "/etc/ephpm-lab/security-63df707f60eae18e-bad.toml": true
+  }
+}

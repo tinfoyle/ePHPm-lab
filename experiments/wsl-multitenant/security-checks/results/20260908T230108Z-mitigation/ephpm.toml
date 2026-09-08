@@ -1,0 +1,34 @@
+[server]
+listen = "127.0.0.1:8080"
+document_root = "/srv/ephpm/default"
+sites_dir = "/srv/ephpm/sites"
+site_overrides_dir = "/etc/ephpm-lab/sites"
+
+[server.security]
+open_basedir = true
+disable_shell_exec = true
+multi_tenant_hardening = true
+network_egress_externally_managed = true
+
+[server.tenant_network]
+ebpf_policy = true
+sidecar_port_range = "20000-29999"
+max_sidecar_ports_per_vhost = 8
+
+[php]
+mode = "per_request"
+concurrency = 4
+queue_depth = 32
+admission = "fifo"
+overload = "wait"
+
+[db.sqlite]
+engine = "turso"
+dir = "/var/lib/ephpm-web/db"
+max_open_dbs = 16
+
+[kv]
+memory_limit = "128MB"
+
+[kv.redis_compat]
+enabled = false

@@ -1,0 +1,7 @@
+{
+  "rootfsUrl": "https://cdimage.ubuntu.com/ubuntu-base/releases/24.04/release/ubuntu-base-24.04.4-base-amd64.tar.gz",
+  "rootfsSha256": "c1e67ef7b17a6300e136118bd1dc04725009cb376c1aad10abcf8cd453628d58",
+  "ephpmUrl": "https://github.com/ephpm/ephpm/releases/download/v0.10.1/ephpm-v0.10.1%2Bphp8.4.23-linux-x86_64.tar.gz",
+  "ephpmSha256": "cd29c89ec2581f0d9333fa17abdff046e4a9e7d5caf812cb289ea8a2ef44af9a",
+  "ephpmCommit": "a0bcd4104996f43118407383c884777c93758712"
+}

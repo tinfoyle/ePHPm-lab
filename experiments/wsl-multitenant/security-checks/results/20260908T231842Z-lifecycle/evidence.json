@@ -1,0 +1,60 @@
+{
+  "category": "lifecycle",
+  "run_id": "20260908T231842Z-lifecycle",
+  "pid": 868,
+  "cases": [
+    {
+      "label": "missing BPF capabilities fails closed",
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Running as unit: security-9fc345fdda872d56-policy.service; invocation ID: 64a4b7feb52d4f42a82916a841fef0bb\nerror: failed to load configuration: failed to load configuration: unknown field: found `mysql_listen`, expected `one of `path`, `dir`, `max_open_dbs`, `engine`, `proxy`, `sqld`, `replication`` for key \"default.db.sqlite.mysql_listen\" in etc/ephpm-lab/security-9fc345fdda872d56-bad.toml TOML file: unknown field: found `mysql_listen`, expected `one of `path`, `dir`, `max_open_dbs`, `engine`, `proxy`, `sqld`, `replication`` for key \"default.db.sqlite.mysql_listen\" in etc/ephpm-lab/security-9fc345fdda872d56-bad.toml TOML file\nFinished with result: exit-code\nMain processes terminated with: code=exited/status=1\nService runtime: 21ms\nCPU time consumed: 18ms\nMemory peak: 256.0K\nMemory swap peak: 0B\n",
+      "listener_open": false
+    },
+    {
+      "label": "before restart",
+      "pid": 868,
+      "bpf": "CgroupPath\nID       AttachType      AttachFlags     Name           \n/sys/fs/cgroup/system.slice/ephpm-lab.service\n497000   cgroup_inet4_bind multi           vhost_bind4                    \n497001   cgroup_inet6_bind multi           vhost_bind6                    \n497002   cgroup_inet4_connect multi           vhost_connect4                 \n497003   cgroup_inet6_connect multi           vhost_connect6                 \n496995   cgroup_device   multi           sd_devices                     \n"
+    },
+    {
+      "label": "stopped",
+      "exit": 0,
+      "listener_open": false,
+      "bpf_vhost_programs": []
+    },
+    {
+      "label": "restarted",
+      "exit": 0,
+      "new_pid": "915\n",
+      "bpf": "CgroupPath\nID       AttachType      AttachFlags     Name           \n/sys/fs/cgroup/system.slice/ephpm-lab.service\n497404   cgroup_inet4_bind multi           vhost_bind4                    \n497405   cgroup_inet6_bind multi           vhost_bind6                    \n497406   cgroup_inet4_connect multi           vhost_connect4                 \n497407   cgroup_inet6_connect multi           vhost_connect6                 \n497394   cgroup_device   multi           sd_devices                     \n",
+      "responses": [
+        {
+          "status": 200,
+          "headers": {
+            "content-type": "application/json",
+            "content-length": "18",
+            "date": "Tue, 08 Sep 2026 23:18:43 GMT"
+          },
+          "body": "{\"status\":\"ready\"}",
+          "json": {
+            "status": "ready"
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "content-type": "application/json",
+            "content-length": "18",
+            "date": "Tue, 08 Sep 2026 23:18:43 GMT"
+          },
+          "body": "{\"status\":\"ready\"}",
+          "json": {
+            "status": "ready"
+          }
+        }
+      ]
+    }
+  ],
+  "cleanup": {
+    "/etc/ephpm-lab/security-9fc345fdda872d56-bad.toml": true
+  }
+}

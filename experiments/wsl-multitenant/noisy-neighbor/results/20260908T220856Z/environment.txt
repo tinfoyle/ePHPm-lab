@@ -1,0 +1,7 @@
+ephpm 0.10.1
+CPUQuotaPerSecUSec=2s
+MemoryMax=2147483648
+TasksMax=256
+NetworkNamespacePath=/run/netns/ephpm-lab
+ActiveState=active
+SubState=running

@@ -1,0 +1,724 @@
+{
+  "category": "network",
+  "run_id": "20260908T224442Z-network",
+  "pid": 222,
+  "cases": [
+    {
+      "label": "ipv4 listener start",
+      "result": {
+        "actual": "0.0.0.0:20000"
+      }
+    },
+    {
+      "label": "ipv4 own virtual port",
+      "host": "alice.lab.test",
+      "address": "127.0.0.1",
+      "port": 14001,
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "94",
+          "date": "Tue, 08 Sep 2026 22:44:42 GMT"
+        },
+        "body": "{\"connected\":true,\"body\":\"ALICE-security-a60a73903a195853\",\"errno\":0,\"error\":\"\",\"warnings\":[]}",
+        "json": {
+          "connected": true,
+          "body": "ALICE-security-a60a73903a195853",
+          "errno": 0,
+          "error": "",
+          "warnings": []
+        }
+      }
+    },
+    {
+      "label": "ipv4 own actual port",
+      "host": "alice.lab.test",
+      "address": "127.0.0.1",
+      "port": 20000,
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "94",
+          "date": "Tue, 08 Sep 2026 22:44:42 GMT"
+        },
+        "body": "{\"connected\":true,\"body\":\"ALICE-security-a60a73903a195853\",\"errno\":0,\"error\":\"\",\"warnings\":[]}",
+        "json": {
+          "connected": true,
+          "body": "ALICE-security-a60a73903a195853",
+          "errno": 0,
+          "error": "",
+          "warnings": []
+        }
+      }
+    },
+    {
+      "label": "ipv4 peer virtual port",
+      "host": "bob.lab.test",
+      "address": "127.0.0.1",
+      "port": 14001,
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "186",
+          "date": "Tue, 08 Sep 2026 22:44:42 GMT"
+        },
+        "body": "{\"connected\":false,\"body\":false,\"errno\":1,\"error\":\"Operation not permitted\",\"warnings\":[\"stream_socket_client(): Unable to connect to tcp:\\/\\/127.0.0.1:14001 (Operation not permitted)\"]}",
+        "json": {
+          "connected": false,
+          "body": false,
+          "errno": 1,
+          "error": "Operation not permitted",
+          "warnings": [
+            "stream_socket_client(): Unable to connect to tcp://127.0.0.1:14001 (Operation not permitted)"
+          ]
+        }
+      }
+    },
+    {
+      "label": "ipv4 peer actual port",
+      "host": "bob.lab.test",
+      "address": "127.0.0.1",
+      "port": 20000,
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "186",
+          "date": "Tue, 08 Sep 2026 22:44:42 GMT"
+        },
+        "body": "{\"connected\":false,\"body\":false,\"errno\":1,\"error\":\"Operation not permitted\",\"warnings\":[\"stream_socket_client(): Unable to connect to tcp:\\/\\/127.0.0.1:20000 (Operation not permitted)\"]}",
+        "json": {
+          "connected": false,
+          "body": false,
+          "errno": 1,
+          "error": "Operation not permitted",
+          "warnings": [
+            "stream_socket_client(): Unable to connect to tcp://127.0.0.1:20000 (Operation not permitted)"
+          ]
+        }
+      }
+    },
+    {
+      "label": "ipv4 peer alternate loopback",
+      "host": "bob.lab.test",
+      "address": "127.0.0.2",
+      "port": 20000,
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "94",
+          "date": "Tue, 08 Sep 2026 22:44:42 GMT"
+        },
+        "body": "{\"connected\":true,\"body\":\"ALICE-security-a60a73903a195853\",\"errno\":0,\"error\":\"\",\"warnings\":[]}",
+        "json": {
+          "connected": true,
+          "body": "ALICE-security-a60a73903a195853",
+          "errno": 0,
+          "error": "",
+          "warnings": []
+        }
+      }
+    },
+    {
+      "label": "ipv4 peer IPv4-mapped loopback",
+      "host": "bob.lab.test",
+      "address": "[::ffff:127.0.0.1]",
+      "port": 20000,
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "94",
+          "date": "Tue, 08 Sep 2026 22:44:42 GMT"
+        },
+        "body": "{\"connected\":true,\"body\":\"ALICE-security-a60a73903a195853\",\"errno\":0,\"error\":\"\",\"warnings\":[]}",
+        "json": {
+          "connected": true,
+          "body": "ALICE-security-a60a73903a195853",
+          "errno": 0,
+          "error": "",
+          "warnings": []
+        }
+      }
+    },
+    {
+      "label": "ipv4 listener completed",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "111",
+          "date": "Tue, 08 Sep 2026 22:44:49 GMT"
+        },
+        "body": "{\"actual\":\"0.0.0.0:20000\",\"accepted\":[\"127.0.0.1:47838\",\"127.0.0.1:47844\",\"127.0.0.1:48214\",\"127.0.0.1:47854\"]}",
+        "json": {
+          "actual": "0.0.0.0:20000",
+          "accepted": [
+            "127.0.0.1:47838",
+            "127.0.0.1:47844",
+            "127.0.0.1:48214",
+            "127.0.0.1:47854"
+          ]
+        }
+      }
+    },
+    {
+      "label": "ipv6 listener start",
+      "result": {
+        "actual": "[::]:20001"
+      }
+    },
+    {
+      "label": "ipv6 own virtual port",
+      "host": "alice.lab.test",
+      "address": "[::1]",
+      "port": 14002,
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "94",
+          "date": "Tue, 08 Sep 2026 22:44:49 GMT"
+        },
+        "body": "{\"connected\":true,\"body\":\"ALICE-security-a60a73903a195853\",\"errno\":0,\"error\":\"\",\"warnings\":[]}",
+        "json": {
+          "connected": true,
+          "body": "ALICE-security-a60a73903a195853",
+          "errno": 0,
+          "error": "",
+          "warnings": []
+        }
+      }
+    },
+    {
+      "label": "ipv6 own actual port",
+      "host": "alice.lab.test",
+      "address": "[::1]",
+      "port": 20001,
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "94",
+          "date": "Tue, 08 Sep 2026 22:44:49 GMT"
+        },
+        "body": "{\"connected\":true,\"body\":\"ALICE-security-a60a73903a195853\",\"errno\":0,\"error\":\"\",\"warnings\":[]}",
+        "json": {
+          "connected": true,
+          "body": "ALICE-security-a60a73903a195853",
+          "errno": 0,
+          "error": "",
+          "warnings": []
+        }
+      }
+    },
+    {
+      "label": "ipv6 peer virtual port",
+      "host": "bob.lab.test",
+      "address": "[::1]",
+      "port": 14002,
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "182",
+          "date": "Tue, 08 Sep 2026 22:44:49 GMT"
+        },
+        "body": "{\"connected\":false,\"body\":false,\"errno\":1,\"error\":\"Operation not permitted\",\"warnings\":[\"stream_socket_client(): Unable to connect to tcp:\\/\\/[::1]:14002 (Operation not permitted)\"]}",
+        "json": {
+          "connected": false,
+          "body": false,
+          "errno": 1,
+          "error": "Operation not permitted",
+          "warnings": [
+            "stream_socket_client(): Unable to connect to tcp://[::1]:14002 (Operation not permitted)"
+          ]
+        }
+      }
+    },
+    {
+      "label": "ipv6 peer actual port",
+      "host": "bob.lab.test",
+      "address": "[::1]",
+      "port": 20001,
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "182",
+          "date": "Tue, 08 Sep 2026 22:44:49 GMT"
+        },
+        "body": "{\"connected\":false,\"body\":false,\"errno\":1,\"error\":\"Operation not permitted\",\"warnings\":[\"stream_socket_client(): Unable to connect to tcp:\\/\\/[::1]:20001 (Operation not permitted)\"]}",
+        "json": {
+          "connected": false,
+          "body": false,
+          "errno": 1,
+          "error": "Operation not permitted",
+          "warnings": [
+            "stream_socket_client(): Unable to connect to tcp://[::1]:20001 (Operation not permitted)"
+          ]
+        }
+      }
+    },
+    {
+      "label": "ipv6 peer alternate loopback",
+      "host": "bob.lab.test",
+      "address": "127.0.0.2",
+      "port": 20001,
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "94",
+          "date": "Tue, 08 Sep 2026 22:44:49 GMT"
+        },
+        "body": "{\"connected\":true,\"body\":\"ALICE-security-a60a73903a195853\",\"errno\":0,\"error\":\"\",\"warnings\":[]}",
+        "json": {
+          "connected": true,
+          "body": "ALICE-security-a60a73903a195853",
+          "errno": 0,
+          "error": "",
+          "warnings": []
+        }
+      }
+    },
+    {
+      "label": "ipv6 peer IPv4-mapped loopback",
+      "host": "bob.lab.test",
+      "address": "[::ffff:127.0.0.1]",
+      "port": 20001,
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "94",
+          "date": "Tue, 08 Sep 2026 22:44:49 GMT"
+        },
+        "body": "{\"connected\":true,\"body\":\"ALICE-security-a60a73903a195853\",\"errno\":0,\"error\":\"\",\"warnings\":[]}",
+        "json": {
+          "connected": true,
+          "body": "ALICE-security-a60a73903a195853",
+          "errno": 0,
+          "error": "",
+          "warnings": []
+        }
+      }
+    },
+    {
+      "label": "ipv6 listener completed",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "118",
+          "date": "Tue, 08 Sep 2026 22:44:56 GMT"
+        },
+        "body": "{\"actual\":\"[::]:20001\",\"accepted\":[\"[::1]:55650\",\"[::1]:55654\",\"[::ffff:127.0.0.1]:37482\",\"[::ffff:127.0.0.1]:33760\"]}",
+        "json": {
+          "actual": "[::]:20001",
+          "accepted": [
+            "[::1]:55650",
+            "[::1]:55654",
+            "[::ffff:127.0.0.1]:37482",
+            "[::ffff:127.0.0.1]:33760"
+          ]
+        }
+      }
+    },
+    {
+      "label": "ipv4-localhost listener start",
+      "result": {
+        "actual": "127.0.0.1:20002"
+      }
+    },
+    {
+      "label": "ipv4-localhost own virtual port",
+      "host": "alice.lab.test",
+      "address": "127.0.0.1",
+      "port": 14003,
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "94",
+          "date": "Tue, 08 Sep 2026 22:44:56 GMT"
+        },
+        "body": "{\"connected\":true,\"body\":\"ALICE-security-a60a73903a195853\",\"errno\":0,\"error\":\"\",\"warnings\":[]}",
+        "json": {
+          "connected": true,
+          "body": "ALICE-security-a60a73903a195853",
+          "errno": 0,
+          "error": "",
+          "warnings": []
+        }
+      }
+    },
+    {
+      "label": "ipv4-localhost own actual port",
+      "host": "alice.lab.test",
+      "address": "127.0.0.1",
+      "port": 20002,
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "94",
+          "date": "Tue, 08 Sep 2026 22:44:56 GMT"
+        },
+        "body": "{\"connected\":true,\"body\":\"ALICE-security-a60a73903a195853\",\"errno\":0,\"error\":\"\",\"warnings\":[]}",
+        "json": {
+          "connected": true,
+          "body": "ALICE-security-a60a73903a195853",
+          "errno": 0,
+          "error": "",
+          "warnings": []
+        }
+      }
+    },
+    {
+      "label": "ipv4-localhost peer virtual port",
+      "host": "bob.lab.test",
+      "address": "127.0.0.1",
+      "port": 14003,
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "186",
+          "date": "Tue, 08 Sep 2026 22:44:56 GMT"
+        },
+        "body": "{\"connected\":false,\"body\":false,\"errno\":1,\"error\":\"Operation not permitted\",\"warnings\":[\"stream_socket_client(): Unable to connect to tcp:\\/\\/127.0.0.1:14003 (Operation not permitted)\"]}",
+        "json": {
+          "connected": false,
+          "body": false,
+          "errno": 1,
+          "error": "Operation not permitted",
+          "warnings": [
+            "stream_socket_client(): Unable to connect to tcp://127.0.0.1:14003 (Operation not permitted)"
+          ]
+        }
+      }
+    },
+    {
+      "label": "ipv4-localhost peer actual port",
+      "host": "bob.lab.test",
+      "address": "127.0.0.1",
+      "port": 20002,
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "186",
+          "date": "Tue, 08 Sep 2026 22:44:56 GMT"
+        },
+        "body": "{\"connected\":false,\"body\":false,\"errno\":1,\"error\":\"Operation not permitted\",\"warnings\":[\"stream_socket_client(): Unable to connect to tcp:\\/\\/127.0.0.1:20002 (Operation not permitted)\"]}",
+        "json": {
+          "connected": false,
+          "body": false,
+          "errno": 1,
+          "error": "Operation not permitted",
+          "warnings": [
+            "stream_socket_client(): Unable to connect to tcp://127.0.0.1:20002 (Operation not permitted)"
+          ]
+        }
+      }
+    },
+    {
+      "label": "ipv4-localhost peer alternate loopback",
+      "host": "bob.lab.test",
+      "address": "127.0.0.2",
+      "port": 20002,
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "178",
+          "date": "Tue, 08 Sep 2026 22:44:56 GMT"
+        },
+        "body": "{\"connected\":false,\"body\":false,\"errno\":111,\"error\":\"Connection refused\",\"warnings\":[\"stream_socket_client(): Unable to connect to tcp:\\/\\/127.0.0.2:20002 (Connection refused)\"]}",
+        "json": {
+          "connected": false,
+          "body": false,
+          "errno": 111,
+          "error": "Connection refused",
+          "warnings": [
+            "stream_socket_client(): Unable to connect to tcp://127.0.0.2:20002 (Connection refused)"
+          ]
+        }
+      }
+    },
+    {
+      "label": "ipv4-localhost peer IPv4-mapped loopback",
+      "host": "bob.lab.test",
+      "address": "[::ffff:127.0.0.1]",
+      "port": 20002,
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "94",
+          "date": "Tue, 08 Sep 2026 22:44:56 GMT"
+        },
+        "body": "{\"connected\":true,\"body\":\"ALICE-security-a60a73903a195853\",\"errno\":0,\"error\":\"\",\"warnings\":[]}",
+        "json": {
+          "connected": true,
+          "body": "ALICE-security-a60a73903a195853",
+          "errno": 0,
+          "error": "",
+          "warnings": []
+        }
+      }
+    },
+    {
+      "label": "ipv4-localhost listener completed",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "95",
+          "date": "Tue, 08 Sep 2026 22:45:03 GMT"
+        },
+        "body": "{\"actual\":\"127.0.0.1:20002\",\"accepted\":[\"127.0.0.1:51304\",\"127.0.0.1:51306\",\"127.0.0.1:51310\"]}",
+        "json": {
+          "actual": "127.0.0.1:20002",
+          "accepted": [
+            "127.0.0.1:51304",
+            "127.0.0.1:51306",
+            "127.0.0.1:51310"
+          ]
+        }
+      }
+    },
+    {
+      "label": "ipv6-localhost listener start",
+      "result": {
+        "actual": "[::1]:20003"
+      }
+    },
+    {
+      "label": "ipv6-localhost own virtual port",
+      "host": "alice.lab.test",
+      "address": "[::1]",
+      "port": 14004,
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "94",
+          "date": "Tue, 08 Sep 2026 22:45:03 GMT"
+        },
+        "body": "{\"connected\":true,\"body\":\"ALICE-security-a60a73903a195853\",\"errno\":0,\"error\":\"\",\"warnings\":[]}",
+        "json": {
+          "connected": true,
+          "body": "ALICE-security-a60a73903a195853",
+          "errno": 0,
+          "error": "",
+          "warnings": []
+        }
+      }
+    },
+    {
+      "label": "ipv6-localhost own actual port",
+      "host": "alice.lab.test",
+      "address": "[::1]",
+      "port": 20003,
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "94",
+          "date": "Tue, 08 Sep 2026 22:45:03 GMT"
+        },
+        "body": "{\"connected\":true,\"body\":\"ALICE-security-a60a73903a195853\",\"errno\":0,\"error\":\"\",\"warnings\":[]}",
+        "json": {
+          "connected": true,
+          "body": "ALICE-security-a60a73903a195853",
+          "errno": 0,
+          "error": "",
+          "warnings": []
+        }
+      }
+    },
+    {
+      "label": "ipv6-localhost peer virtual port",
+      "host": "bob.lab.test",
+      "address": "[::1]",
+      "port": 14004,
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "182",
+          "date": "Tue, 08 Sep 2026 22:45:03 GMT"
+        },
+        "body": "{\"connected\":false,\"body\":false,\"errno\":1,\"error\":\"Operation not permitted\",\"warnings\":[\"stream_socket_client(): Unable to connect to tcp:\\/\\/[::1]:14004 (Operation not permitted)\"]}",
+        "json": {
+          "connected": false,
+          "body": false,
+          "errno": 1,
+          "error": "Operation not permitted",
+          "warnings": [
+            "stream_socket_client(): Unable to connect to tcp://[::1]:14004 (Operation not permitted)"
+          ]
+        }
+      }
+    },
+    {
+      "label": "ipv6-localhost peer actual port",
+      "host": "bob.lab.test",
+      "address": "[::1]",
+      "port": 20003,
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "182",
+          "date": "Tue, 08 Sep 2026 22:45:03 GMT"
+        },
+        "body": "{\"connected\":false,\"body\":false,\"errno\":1,\"error\":\"Operation not permitted\",\"warnings\":[\"stream_socket_client(): Unable to connect to tcp:\\/\\/[::1]:20003 (Operation not permitted)\"]}",
+        "json": {
+          "connected": false,
+          "body": false,
+          "errno": 1,
+          "error": "Operation not permitted",
+          "warnings": [
+            "stream_socket_client(): Unable to connect to tcp://[::1]:20003 (Operation not permitted)"
+          ]
+        }
+      }
+    },
+    {
+      "label": "ipv6-localhost peer alternate loopback",
+      "host": "bob.lab.test",
+      "address": "127.0.0.2",
+      "port": 20003,
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "178",
+          "date": "Tue, 08 Sep 2026 22:45:03 GMT"
+        },
+        "body": "{\"connected\":false,\"body\":false,\"errno\":111,\"error\":\"Connection refused\",\"warnings\":[\"stream_socket_client(): Unable to connect to tcp:\\/\\/127.0.0.2:20003 (Connection refused)\"]}",
+        "json": {
+          "connected": false,
+          "body": false,
+          "errno": 111,
+          "error": "Connection refused",
+          "warnings": [
+            "stream_socket_client(): Unable to connect to tcp://127.0.0.2:20003 (Connection refused)"
+          ]
+        }
+      }
+    },
+    {
+      "label": "ipv6-localhost peer IPv4-mapped loopback",
+      "host": "bob.lab.test",
+      "address": "[::ffff:127.0.0.1]",
+      "port": 20003,
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "187",
+          "date": "Tue, 08 Sep 2026 22:45:03 GMT"
+        },
+        "body": "{\"connected\":false,\"body\":false,\"errno\":111,\"error\":\"Connection refused\",\"warnings\":[\"stream_socket_client(): Unable to connect to tcp:\\/\\/[::ffff:127.0.0.1]:20003 (Connection refused)\"]}",
+        "json": {
+          "connected": false,
+          "body": false,
+          "errno": 111,
+          "error": "Connection refused",
+          "warnings": [
+            "stream_socket_client(): Unable to connect to tcp://[::ffff:127.0.0.1]:20003 (Connection refused)"
+          ]
+        }
+      }
+    },
+    {
+      "label": "ipv6-localhost listener completed",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "65",
+          "date": "Tue, 08 Sep 2026 22:45:10 GMT"
+        },
+        "body": "{\"actual\":\"[::1]:20003\",\"accepted\":[\"[::1]:35740\",\"[::1]:35742\"]}",
+        "json": {
+          "actual": "[::1]:20003",
+          "accepted": [
+            "[::1]:35740",
+            "[::1]:35742"
+          ]
+        }
+      }
+    }
+  ],
+  "cleanup": {
+    "/srv/ephpm/sites/bob.lab.test/public/security-a60a73903a195853-ipv4-client-20000-peer-alternate-loopback.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-a60a73903a195853-ipv6-localhost-listener.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-a60a73903a195853-ipv6-localhost-client-14004-peer-virtual-port.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-a60a73903a195853-ipv4-client-14001-own-virtual-port.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-a60a73903a195853-ipv4-client-20000-own-actual-port.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-a60a73903a195853-ipv4-listener.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-a60a73903a195853-ipv4-client-14001-peer-virtual-port.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-a60a73903a195853-ipv4-localhost-client-14003-peer-virtual-port.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-a60a73903a195853-ipv4-state.json": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-a60a73903a195853-ipv6-client-14002-peer-virtual-port.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-a60a73903a195853-ipv6-localhost-client-20003-peer-actual-port.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-a60a73903a195853-ipv4-client-20000-peer-IPv4-mapped-loopback.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-a60a73903a195853-ipv6-client-20001-own-actual-port.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-a60a73903a195853-ipv6-state.json": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-a60a73903a195853-ipv6-client-14002-own-virtual-port.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-a60a73903a195853-ipv4-localhost-client-20002-own-actual-port.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-a60a73903a195853-ipv6-client-20001-peer-alternate-loopback.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-a60a73903a195853-ipv4-localhost-client-20002-peer-IPv4-mapped-loopback.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-a60a73903a195853-ipv6-localhost-client-20003-own-actual-port.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-a60a73903a195853-ipv6-client-20001-peer-actual-port.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-a60a73903a195853-ipv6-localhost-client-20003-peer-alternate-loopback.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-a60a73903a195853-ipv6-client-20001-peer-IPv4-mapped-loopback.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-a60a73903a195853-ipv6-localhost-state.json": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-a60a73903a195853-ipv6-localhost-client-14004-own-virtual-port.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-a60a73903a195853-ipv4-localhost-client-14003-own-virtual-port.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-a60a73903a195853-ipv4-localhost-listener.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-a60a73903a195853-ipv4-client-20000-peer-actual-port.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-a60a73903a195853-ipv6-listener.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-a60a73903a195853-ipv4-localhost-client-20002-peer-actual-port.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-a60a73903a195853-ipv4-localhost-state.json": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-a60a73903a195853-ipv4-localhost-client-20002-peer-alternate-loopback.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-a60a73903a195853-ipv6-localhost-client-20003-peer-IPv4-mapped-loopback.php": true
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "category": "build",
+  "run_id": "20260908T225440Z-build",
+  "pid": 222,
+  "cases": [
+    {
+      "label": "sandboxed preview command",
+      "command": [
+        "/usr/local/bin/ephpm",
+        "exec",
+        "--config",
+        "/etc/ephpm-lab/ephpm.toml",
+        "--site",
+        "alice.lab.test",
+        "--",
+        "python3",
+        "<fixed Python canary probe>"
+      ],
+      "exit": 0,
+      "stdout": "\u001b[2m2026-09-08T22:54:41.016490Z\u001b[0m \u001b[32m INFO\u001b[0m ephpm exec: entering tenant sandbox \u001b[3msite\u001b[0m\u001b[2m=\u001b[0malice.lab.test \u001b[3muid\u001b[0m\u001b[2m=\u001b[0m995 \u001b[3mgid\u001b[0m\u001b[2m=\u001b[0m995 \u001b[3mtimeout\u001b[0m\u001b[2m=\u001b[0m0 \u001b[3mno_sandbox\u001b[0m\u001b[2m=\u001b[0mfalse \u001b[3mcontainer\u001b[0m\u001b[2m=\u001b[0m/srv/ephpm/sites/alice.lab.test \u001b[3mdocument_root\u001b[0m\u001b[2m=\u001b[0m/srv/ephpm/sites/alice.lab.test/public \u001b[3mcommand\u001b[0m\u001b[2m=\u001b[0m[\"python3\", \"-c\", \"import json,os,pathlib,socket,subprocess\\npaths=json.loads(os.environ['SECURITY_PATHS']); r={'uid':os.getuid(),'parent_environment':os.getenv('SECURITY_BUILD_PARENT_CANARY')}\\nfor k,p in paths.items():\\n try:r[k]={'read':pathlib.Path(p).read_text()}\\n except Exception as e:r[k]={'error':str(e)}\\ntry:pathlib.Path(paths['own_output']).write_text('BUILD-OWN-WRITE');r['own_write']=True\\nexcept Exception as e:r['own_write']=str(e)\\ntry:\\n with open(paths['peer'],'a') as f:f.write('MODIFIED-BY-ALICE')\\n r['peer_append']=True\\nexcept Exception as e:r['peer_append']=str(e)\\nchild=subprocess.run(['python3','-c','import pathlib,sys; print(pathlib.Path(sys.argv[1]).read_text())',paths['peer']],capture_output=True,text=True,timeout=3)\\nr['subprocess_peer']={'exit':child.returncode,'stdout':child.stdout,'stderr':child.stderr}\\ntry:\\n s=socket.create_connection(('127.0.0.1',8080),timeout=1);s.sendall(b'GET /_ephpm/ready HTTP/1.1\\\\r\\\\nHost: alice.lab.test\\\\r\\\\nConnection: close\\\\r\\\\n\\\\r\\\\n');r['loopback_readiness']=s.recv(4096).decode();s.close()\\nexcept Exception as e:r['loopback_readiness']=str(e)\\nprint(json.dumps(r))\\n\"]\n\u001b[2m2026-09-08T22:54:41.019602Z\u001b[0m \u001b[32m INFO\u001b[0m Landlock: fully enforced (filesystem scoped to the tenant sandbox) \u001b[3mcontainer\u001b[0m\u001b[2m=\u001b[0m/srv/ephpm/sites/alice.lab.test \u001b[3mstate_root\u001b[0m\u001b[2m=\u001b[0m/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9\n{\"uid\": 995, \"parent_environment\": \"security-965647330a91de79-SYNTHETIC-PARENT\", \"own\": {\"read\": \"ALICE:security-965647330a91de79\"}, \"peer\": {\"error\": \"[Errno 13] Permission denied: '/srv/ephpm/sites/bob.lab.test/public/security-965647330a91de79-build-peer-canary'\"}, \"outside\": {\"error\": \"[Errno 13] Permission denied: '/var/lib/ephpm-lab/security-965647330a91de79-outside-canary'\"}, \"own_output\": {\"error\": \"[Errno 2] No such file or directory: '/srv/ephpm/sites/alice.lab.test/public/security-965647330a91de79-build-output'\"}, \"own_write\": true, \"peer_append\": \"[Errno 13] Permission denied: '/srv/ephpm/sites/bob.lab.test/public/security-965647330a91de79-build-peer-canary'\", \"subprocess_peer\": {\"exit\": 1, \"stdout\": \"\", \"stderr\": \"Traceback (most recent call last):\\n  File \\\"<string>\\\", line 1, in <module>\\n  File \\\"/usr/lib/python3.12/pathlib.py\\\", line 1029, in read_text\\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/lib/python3.12/pathlib.py\\\", line 1015, in open\\n    return io.open(self, mode, buffering, encoding, errors, newline)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nPermissionError: [Errno 13] Permission denied: '/srv/ephpm/sites/bob.lab.test/public/security-965647330a91de79-build-peer-canary'\\n\"}, \"loopback_readiness\": \"HTTP/1.1 200 OK\\r\\ncontent-type: application/json\\r\\nconnection: close\\r\\ncontent-length: 18\\r\\ndate: Tue, 08 Sep 2026 22:54:41 GMT\\r\\n\\r\\n{\\\"status\\\":\\\"ready\\\"}\"}\n",
+      "stderr": ""
+    },
+    {
+      "label": "post-build integrity",
+      "peer_unchanged": true,
+      "own_output_exists": true
+    },
+    {
+      "label": "unknown site fails closed",
+      "exit": 1,
+      "stdout": "",
+      "stderr": "error: failed to resolve --site to a tenant sandbox: no virtual host \"security-965647330a91de79.invalid\": /srv/ephpm/sites/security-965647330a91de79.invalid is not a directory\n"
+    }
+  ],
+  "cleanup": {
+    "/srv/ephpm/sites/alice.lab.test/public/security-965647330a91de79-build-own-canary": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-965647330a91de79-build-output": true,
+    "/var/lib/ephpm-lab/security-965647330a91de79-outside-canary": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-965647330a91de79-build-peer-canary": true
+  }
+}

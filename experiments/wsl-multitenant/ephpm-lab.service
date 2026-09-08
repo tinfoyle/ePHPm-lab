@@ -1,0 +1,30 @@
+[Unit]
+Description=ePHPm multi-tenant WSL lab (setup, not security certification)
+Requires=ephpm-lab-network.service
+After=ephpm-lab-network.service
+
+[Service]
+Type=simple
+User=ephpm-web
+Group=ephpm-web
+WorkingDirectory=/var/lib/ephpm-web
+ExecStart=/usr/local/bin/ephpm serve --config /etc/ephpm-lab/ephpm.toml
+NetworkNamespacePath=/run/netns/ephpm-lab
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+InaccessiblePaths=/opt/ephpm-lab /var/lib/ephpm-ctl /mnt
+ReadWritePaths=/srv/ephpm/sites /var/lib/ephpm-web
+AmbientCapabilities=CAP_BPF CAP_NET_ADMIN
+CapabilityBoundingSet=CAP_BPF CAP_NET_ADMIN
+LimitMEMLOCK=infinity
+MemoryMax=2G
+CPUQuota=200%
+TasksMax=256
+UMask=0077
+Restart=no
+
+[Install]
+WantedBy=multi-user.target

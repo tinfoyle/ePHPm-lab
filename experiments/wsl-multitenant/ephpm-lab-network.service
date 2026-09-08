@@ -1,0 +1,11 @@
+[Unit]
+Description=ePHPm lab isolated network namespace and egress floor
+Before=ephpm-lab.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/ephpm-lab/network.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

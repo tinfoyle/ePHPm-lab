@@ -76,6 +76,8 @@ Raw data, workload details, and the original test narrative live in [the WordPre
 
 ## Reproduce It
 
+For the new local Linux security-review environment, see the [WSL multi-tenant experiment](experiments/wsl-multitenant/README.md). It scripts a dedicated Ubuntu WSL2 instance and native multi-tenant ePHPm service, reuses existing fixtures, and stops at environment readiness before security testing.
+
 The manifests are plain Kubernetes YAML and the load generator is k6. Start with the [reproduction guide](docs/reproduction.md) for the exact sequence, then inspect the [manifest map](k8s/README.md) for the workload files.
 
 ## What Comes Next

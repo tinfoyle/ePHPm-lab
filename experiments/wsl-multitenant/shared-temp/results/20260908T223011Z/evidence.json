@@ -1,0 +1,618 @@
+{
+  "run_id": "20260908T223011Z",
+  "prefix": "probe-bcb871cc30abeb5f",
+  "service_pid": 222,
+  "local": {
+    "alice.lab.test": {
+      "info": {
+        "host": "alice.lab.test",
+        "php": "8.4.23",
+        "open_basedir": "/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9",
+        "sys_get_temp_dir": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp",
+        "sys_temp_dir": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp",
+        "upload_tmp_dir": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp",
+        "session_save_path": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/sessions"
+      },
+      "results": {
+        "shared_tmp": {
+          "path": "/tmp/probe-bcb871cc30abeb5f-shared_tmp",
+          "write": {
+            "value": false,
+            "warnings": [
+              "fopen(): open_basedir restriction in effect. File(/tmp/probe-bcb871cc30abeb5f-shared_tmp) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "fopen(/tmp/probe-bcb871cc30abeb5f-shared_tmp): Failed to open stream: Operation not permitted"
+            ]
+          }
+        },
+        "shared_var_tmp": {
+          "path": "/var/tmp/probe-bcb871cc30abeb5f-shared_var_tmp",
+          "write": {
+            "value": false,
+            "warnings": [
+              "fopen(): open_basedir restriction in effect. File(/var/tmp/probe-bcb871cc30abeb5f-shared_var_tmp) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "fopen(/var/tmp/probe-bcb871cc30abeb5f-shared_var_tmp): Failed to open stream: Operation not permitted"
+            ]
+          }
+        },
+        "shared_shm": {
+          "path": "/dev/shm/probe-bcb871cc30abeb5f-shared_shm",
+          "write": {
+            "value": false,
+            "warnings": [
+              "fopen(): open_basedir restriction in effect. File(/dev/shm/probe-bcb871cc30abeb5f-shared_shm) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "fopen(/dev/shm/probe-bcb871cc30abeb5f-shared_shm): Failed to open stream: Operation not permitted"
+            ]
+          }
+        },
+        "shared_service_state": {
+          "path": "/var/lib/ephpm-web/probe-bcb871cc30abeb5f-shared_service_state",
+          "write": {
+            "value": false,
+            "warnings": [
+              "fopen(): open_basedir restriction in effect. File(/var/lib/ephpm-web/probe-bcb871cc30abeb5f-shared_service_state) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "fopen(/var/lib/ephpm-web/probe-bcb871cc30abeb5f-shared_service_state): Failed to open stream: Operation not permitted"
+            ]
+          }
+        },
+        "shared_sites_parent": {
+          "path": "/srv/ephpm/sites/probe-bcb871cc30abeb5f-shared_sites_parent",
+          "write": {
+            "value": false,
+            "warnings": [
+              "fopen(): open_basedir restriction in effect. File(/srv/ephpm/sites/probe-bcb871cc30abeb5f-shared_sites_parent) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "fopen(/srv/ephpm/sites/probe-bcb871cc30abeb5f-shared_sites_parent): Failed to open stream: Operation not permitted"
+            ]
+          }
+        },
+        "own_container": {
+          "path": "/srv/ephpm/sites/alice.lab.test/probe-bcb871cc30abeb5f-own_container",
+          "write": {
+            "value": 36,
+            "warnings": []
+          },
+          "readback": {
+            "value": "probe-bcb871cc30abeb5f:own_container",
+            "warnings": []
+          }
+        },
+        "own_tmp": {
+          "path": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/probe-bcb871cc30abeb5f-own_tmp",
+          "write": {
+            "value": 30,
+            "warnings": []
+          },
+          "readback": {
+            "value": "probe-bcb871cc30abeb5f:own_tmp",
+            "warnings": []
+          }
+        },
+        "own_upload_tmp": {
+          "path": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/probe-bcb871cc30abeb5f-own_upload_tmp",
+          "write": {
+            "value": 37,
+            "warnings": []
+          },
+          "readback": {
+            "value": "probe-bcb871cc30abeb5f:own_upload_tmp",
+            "warnings": []
+          }
+        },
+        "own_sessions": {
+          "path": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/sessions/probe-bcb871cc30abeb5f-own_sessions",
+          "write": {
+            "value": 35,
+            "warnings": []
+          },
+          "readback": {
+            "value": "probe-bcb871cc30abeb5f:own_sessions",
+            "warnings": []
+          }
+        },
+        "tempnam_default": {
+          "value": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/probe-bcb871cc30abeb5f-default-fedq3u3ie0ej56nnchD",
+          "warnings": []
+        },
+        "tempnam_shared_argument": {
+          "value": false,
+          "warnings": [
+            "tempnam(): open_basedir restriction in effect. File(/tmp) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)"
+          ]
+        },
+        "tmpfile": {
+          "value": {
+            "path": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/phptpfd7182c10g3ubhwCx",
+            "bytes_written": 19,
+            "closed_auto_removed": true
+          },
+          "warnings": []
+        }
+      }
+    },
+    "bob.lab.test": {
+      "info": {
+        "host": "bob.lab.test",
+        "php": "8.4.23",
+        "open_basedir": "/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443",
+        "sys_get_temp_dir": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp",
+        "sys_temp_dir": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp",
+        "upload_tmp_dir": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp",
+        "session_save_path": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/sessions"
+      },
+      "results": {
+        "shared_tmp": {
+          "path": "/tmp/probe-bcb871cc30abeb5f-shared_tmp",
+          "write": {
+            "value": false,
+            "warnings": [
+              "fopen(): open_basedir restriction in effect. File(/tmp/probe-bcb871cc30abeb5f-shared_tmp) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "fopen(/tmp/probe-bcb871cc30abeb5f-shared_tmp): Failed to open stream: Operation not permitted"
+            ]
+          }
+        },
+        "shared_var_tmp": {
+          "path": "/var/tmp/probe-bcb871cc30abeb5f-shared_var_tmp",
+          "write": {
+            "value": false,
+            "warnings": [
+              "fopen(): open_basedir restriction in effect. File(/var/tmp/probe-bcb871cc30abeb5f-shared_var_tmp) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "fopen(/var/tmp/probe-bcb871cc30abeb5f-shared_var_tmp): Failed to open stream: Operation not permitted"
+            ]
+          }
+        },
+        "shared_shm": {
+          "path": "/dev/shm/probe-bcb871cc30abeb5f-shared_shm",
+          "write": {
+            "value": false,
+            "warnings": [
+              "fopen(): open_basedir restriction in effect. File(/dev/shm/probe-bcb871cc30abeb5f-shared_shm) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "fopen(/dev/shm/probe-bcb871cc30abeb5f-shared_shm): Failed to open stream: Operation not permitted"
+            ]
+          }
+        },
+        "shared_service_state": {
+          "path": "/var/lib/ephpm-web/probe-bcb871cc30abeb5f-shared_service_state",
+          "write": {
+            "value": false,
+            "warnings": [
+              "fopen(): open_basedir restriction in effect. File(/var/lib/ephpm-web/probe-bcb871cc30abeb5f-shared_service_state) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "fopen(/var/lib/ephpm-web/probe-bcb871cc30abeb5f-shared_service_state): Failed to open stream: Operation not permitted"
+            ]
+          }
+        },
+        "shared_sites_parent": {
+          "path": "/srv/ephpm/sites/probe-bcb871cc30abeb5f-shared_sites_parent",
+          "write": {
+            "value": false,
+            "warnings": [
+              "fopen(): open_basedir restriction in effect. File(/srv/ephpm/sites/probe-bcb871cc30abeb5f-shared_sites_parent) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "fopen(/srv/ephpm/sites/probe-bcb871cc30abeb5f-shared_sites_parent): Failed to open stream: Operation not permitted"
+            ]
+          }
+        },
+        "own_container": {
+          "path": "/srv/ephpm/sites/bob.lab.test/probe-bcb871cc30abeb5f-own_container",
+          "write": {
+            "value": 36,
+            "warnings": []
+          },
+          "readback": {
+            "value": "probe-bcb871cc30abeb5f:own_container",
+            "warnings": []
+          }
+        },
+        "own_tmp": {
+          "path": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/probe-bcb871cc30abeb5f-own_tmp",
+          "write": {
+            "value": 30,
+            "warnings": []
+          },
+          "readback": {
+            "value": "probe-bcb871cc30abeb5f:own_tmp",
+            "warnings": []
+          }
+        },
+        "own_upload_tmp": {
+          "path": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/probe-bcb871cc30abeb5f-own_upload_tmp",
+          "write": {
+            "value": 37,
+            "warnings": []
+          },
+          "readback": {
+            "value": "probe-bcb871cc30abeb5f:own_upload_tmp",
+            "warnings": []
+          }
+        },
+        "own_sessions": {
+          "path": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/sessions/probe-bcb871cc30abeb5f-own_sessions",
+          "write": {
+            "value": 35,
+            "warnings": []
+          },
+          "readback": {
+            "value": "probe-bcb871cc30abeb5f:own_sessions",
+            "warnings": []
+          }
+        },
+        "tempnam_default": {
+          "value": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/probe-bcb871cc30abeb5f-default-75fv7a7fij6radzh318",
+          "warnings": []
+        },
+        "tempnam_shared_argument": {
+          "value": false,
+          "warnings": [
+            "tempnam(): open_basedir restriction in effect. File(/tmp) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)"
+          ]
+        },
+        "tmpfile": {
+          "value": {
+            "path": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/phplub0ofhqqdl6b1SmsHR",
+            "bytes_written": 19,
+            "closed_auto_removed": true
+          },
+          "warnings": []
+        }
+      }
+    }
+  },
+  "cross": {
+    "alice.lab.test": {
+      "info": {
+        "host": "alice.lab.test",
+        "php": "8.4.23",
+        "open_basedir": "/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9",
+        "sys_get_temp_dir": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp",
+        "sys_temp_dir": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp",
+        "upload_tmp_dir": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp",
+        "session_save_path": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/sessions"
+      },
+      "results": {
+        "os_tmp": {
+          "path": "/tmp/probe-bcb871cc30abeb5f-os-tmp",
+          "read": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/tmp/probe-bcb871cc30abeb5f-os-tmp) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "file_get_contents(/tmp/probe-bcb871cc30abeb5f-os-tmp): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "append": {
+            "value": false,
+            "warnings": [
+              "fopen(): open_basedir restriction in effect. File(/tmp/probe-bcb871cc30abeb5f-os-tmp) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "fopen(/tmp/probe-bcb871cc30abeb5f-os-tmp): Failed to open stream: Operation not permitted"
+            ]
+          }
+        },
+        "os_var_tmp": {
+          "path": "/var/tmp/probe-bcb871cc30abeb5f-os-var_tmp",
+          "read": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/var/tmp/probe-bcb871cc30abeb5f-os-var_tmp) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "file_get_contents(/var/tmp/probe-bcb871cc30abeb5f-os-var_tmp): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "append": {
+            "value": false,
+            "warnings": [
+              "fopen(): open_basedir restriction in effect. File(/var/tmp/probe-bcb871cc30abeb5f-os-var_tmp) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "fopen(/var/tmp/probe-bcb871cc30abeb5f-os-var_tmp): Failed to open stream: Operation not permitted"
+            ]
+          }
+        },
+        "peer_own_container": {
+          "path": "/srv/ephpm/sites/bob.lab.test/probe-bcb871cc30abeb5f-own_container",
+          "read": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/srv/ephpm/sites/bob.lab.test/probe-bcb871cc30abeb5f-own_container) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "file_get_contents(/srv/ephpm/sites/bob.lab.test/probe-bcb871cc30abeb5f-own_container): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "append": {
+            "value": false,
+            "warnings": [
+              "fopen(): open_basedir restriction in effect. File(/srv/ephpm/sites/bob.lab.test/probe-bcb871cc30abeb5f-own_container) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "fopen(/srv/ephpm/sites/bob.lab.test/probe-bcb871cc30abeb5f-own_container): Failed to open stream: Operation not permitted"
+            ]
+          }
+        },
+        "peer_own_tmp": {
+          "path": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/probe-bcb871cc30abeb5f-own_tmp",
+          "read": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/probe-bcb871cc30abeb5f-own_tmp) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "file_get_contents(/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/probe-bcb871cc30abeb5f-own_tmp): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "append": {
+            "value": false,
+            "warnings": [
+              "fopen(): open_basedir restriction in effect. File(/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/probe-bcb871cc30abeb5f-own_tmp) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "fopen(/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/probe-bcb871cc30abeb5f-own_tmp): Failed to open stream: Operation not permitted"
+            ]
+          }
+        },
+        "peer_own_upload_tmp": {
+          "path": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/probe-bcb871cc30abeb5f-own_upload_tmp",
+          "read": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/probe-bcb871cc30abeb5f-own_upload_tmp) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "file_get_contents(/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/probe-bcb871cc30abeb5f-own_upload_tmp): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "append": {
+            "value": false,
+            "warnings": [
+              "fopen(): open_basedir restriction in effect. File(/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/probe-bcb871cc30abeb5f-own_upload_tmp) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "fopen(/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/probe-bcb871cc30abeb5f-own_upload_tmp): Failed to open stream: Operation not permitted"
+            ]
+          }
+        },
+        "peer_own_sessions": {
+          "path": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/sessions/probe-bcb871cc30abeb5f-own_sessions",
+          "read": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/sessions/probe-bcb871cc30abeb5f-own_sessions) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "file_get_contents(/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/sessions/probe-bcb871cc30abeb5f-own_sessions): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "append": {
+            "value": false,
+            "warnings": [
+              "fopen(): open_basedir restriction in effect. File(/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/sessions/probe-bcb871cc30abeb5f-own_sessions) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "fopen(/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/sessions/probe-bcb871cc30abeb5f-own_sessions): Failed to open stream: Operation not permitted"
+            ]
+          }
+        },
+        "peer_tempnam_default": {
+          "path": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/probe-bcb871cc30abeb5f-default-75fv7a7fij6radzh318",
+          "read": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/probe-bcb871cc30abeb5f-default-75fv7a7fij6radzh318) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "file_get_contents(/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/probe-bcb871cc30abeb5f-default-75fv7a7fij6radzh318): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "append": {
+            "value": false,
+            "warnings": [
+              "fopen(): open_basedir restriction in effect. File(/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/probe-bcb871cc30abeb5f-default-75fv7a7fij6radzh318) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "fopen(/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/probe-bcb871cc30abeb5f-default-75fv7a7fij6radzh318): Failed to open stream: Operation not permitted"
+            ]
+          }
+        }
+      }
+    },
+    "bob.lab.test": {
+      "info": {
+        "host": "bob.lab.test",
+        "php": "8.4.23",
+        "open_basedir": "/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443",
+        "sys_get_temp_dir": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp",
+        "sys_temp_dir": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp",
+        "upload_tmp_dir": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp",
+        "session_save_path": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/sessions"
+      },
+      "results": {
+        "os_tmp": {
+          "path": "/tmp/probe-bcb871cc30abeb5f-os-tmp",
+          "read": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/tmp/probe-bcb871cc30abeb5f-os-tmp) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "file_get_contents(/tmp/probe-bcb871cc30abeb5f-os-tmp): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "append": {
+            "value": false,
+            "warnings": [
+              "fopen(): open_basedir restriction in effect. File(/tmp/probe-bcb871cc30abeb5f-os-tmp) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "fopen(/tmp/probe-bcb871cc30abeb5f-os-tmp): Failed to open stream: Operation not permitted"
+            ]
+          }
+        },
+        "os_var_tmp": {
+          "path": "/var/tmp/probe-bcb871cc30abeb5f-os-var_tmp",
+          "read": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/var/tmp/probe-bcb871cc30abeb5f-os-var_tmp) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "file_get_contents(/var/tmp/probe-bcb871cc30abeb5f-os-var_tmp): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "append": {
+            "value": false,
+            "warnings": [
+              "fopen(): open_basedir restriction in effect. File(/var/tmp/probe-bcb871cc30abeb5f-os-var_tmp) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "fopen(/var/tmp/probe-bcb871cc30abeb5f-os-var_tmp): Failed to open stream: Operation not permitted"
+            ]
+          }
+        },
+        "peer_own_container": {
+          "path": "/srv/ephpm/sites/alice.lab.test/probe-bcb871cc30abeb5f-own_container",
+          "read": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/srv/ephpm/sites/alice.lab.test/probe-bcb871cc30abeb5f-own_container) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "file_get_contents(/srv/ephpm/sites/alice.lab.test/probe-bcb871cc30abeb5f-own_container): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "append": {
+            "value": false,
+            "warnings": [
+              "fopen(): open_basedir restriction in effect. File(/srv/ephpm/sites/alice.lab.test/probe-bcb871cc30abeb5f-own_container) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "fopen(/srv/ephpm/sites/alice.lab.test/probe-bcb871cc30abeb5f-own_container): Failed to open stream: Operation not permitted"
+            ]
+          }
+        },
+        "peer_own_tmp": {
+          "path": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/probe-bcb871cc30abeb5f-own_tmp",
+          "read": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/probe-bcb871cc30abeb5f-own_tmp) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "file_get_contents(/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/probe-bcb871cc30abeb5f-own_tmp): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "append": {
+            "value": false,
+            "warnings": [
+              "fopen(): open_basedir restriction in effect. File(/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/probe-bcb871cc30abeb5f-own_tmp) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "fopen(/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/probe-bcb871cc30abeb5f-own_tmp): Failed to open stream: Operation not permitted"
+            ]
+          }
+        },
+        "peer_own_upload_tmp": {
+          "path": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/probe-bcb871cc30abeb5f-own_upload_tmp",
+          "read": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/probe-bcb871cc30abeb5f-own_upload_tmp) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "file_get_contents(/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/probe-bcb871cc30abeb5f-own_upload_tmp): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "append": {
+            "value": false,
+            "warnings": [
+              "fopen(): open_basedir restriction in effect. File(/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/probe-bcb871cc30abeb5f-own_upload_tmp) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "fopen(/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/probe-bcb871cc30abeb5f-own_upload_tmp): Failed to open stream: Operation not permitted"
+            ]
+          }
+        },
+        "peer_own_sessions": {
+          "path": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/sessions/probe-bcb871cc30abeb5f-own_sessions",
+          "read": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/sessions/probe-bcb871cc30abeb5f-own_sessions) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "file_get_contents(/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/sessions/probe-bcb871cc30abeb5f-own_sessions): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "append": {
+            "value": false,
+            "warnings": [
+              "fopen(): open_basedir restriction in effect. File(/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/sessions/probe-bcb871cc30abeb5f-own_sessions) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "fopen(/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/sessions/probe-bcb871cc30abeb5f-own_sessions): Failed to open stream: Operation not permitted"
+            ]
+          }
+        },
+        "peer_tempnam_default": {
+          "path": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/probe-bcb871cc30abeb5f-default-fedq3u3ie0ej56nnchD",
+          "read": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/probe-bcb871cc30abeb5f-default-fedq3u3ie0ej56nnchD) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "file_get_contents(/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/probe-bcb871cc30abeb5f-default-fedq3u3ie0ej56nnchD): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "append": {
+            "value": false,
+            "warnings": [
+              "fopen(): open_basedir restriction in effect. File(/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/probe-bcb871cc30abeb5f-default-fedq3u3ie0ej56nnchD) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "fopen(/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/probe-bcb871cc30abeb5f-default-fedq3u3ie0ej56nnchD): Failed to open stream: Operation not permitted"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "os_control": {
+    "tmp": {
+      "path": "/tmp/probe-bcb871cc30abeb5f-os-tmp",
+      "created": true
+    },
+    "var_tmp": {
+      "path": "/var/tmp/probe-bcb871cc30abeb5f-os-var_tmp",
+      "created": true
+    }
+  },
+  "integrity": {
+    "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/probe-bcb871cc30abeb5f-own_tmp": {
+      "unchanged": true,
+      "before_sha256": "54a25cf83e74c623329bac6f41b23264ecc699218c8bfaaab2eda60c9feba1d5",
+      "after_sha256": "54a25cf83e74c623329bac6f41b23264ecc699218c8bfaaab2eda60c9feba1d5"
+    },
+    "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/probe-bcb871cc30abeb5f-default-fedq3u3ie0ej56nnchD": {
+      "unchanged": true,
+      "before_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "after_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/probe-bcb871cc30abeb5f-own_tmp": {
+      "unchanged": true,
+      "before_sha256": "54a25cf83e74c623329bac6f41b23264ecc699218c8bfaaab2eda60c9feba1d5",
+      "after_sha256": "54a25cf83e74c623329bac6f41b23264ecc699218c8bfaaab2eda60c9feba1d5"
+    },
+    "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/probe-bcb871cc30abeb5f-own_upload_tmp": {
+      "unchanged": true,
+      "before_sha256": "d87ea120f4bd1fad6539ae83003b028bf3f6938325e8eb8c3046351f6603eb38",
+      "after_sha256": "d87ea120f4bd1fad6539ae83003b028bf3f6938325e8eb8c3046351f6603eb38"
+    },
+    "/var/tmp/probe-bcb871cc30abeb5f-os-var_tmp": {
+      "unchanged": true,
+      "before_sha256": "a3ff8da6968ffb3a9146e685d08eef0032f01756047f30f6078d9bdbb27e058a",
+      "after_sha256": "a3ff8da6968ffb3a9146e685d08eef0032f01756047f30f6078d9bdbb27e058a"
+    },
+    "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/sessions/probe-bcb871cc30abeb5f-own_sessions": {
+      "unchanged": true,
+      "before_sha256": "7da8ce509f85cd268e4dd72fc14c1d94a7410395b694193bf0f32796b265ca4c",
+      "after_sha256": "7da8ce509f85cd268e4dd72fc14c1d94a7410395b694193bf0f32796b265ca4c"
+    },
+    "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/sessions/probe-bcb871cc30abeb5f-own_sessions": {
+      "unchanged": true,
+      "before_sha256": "7da8ce509f85cd268e4dd72fc14c1d94a7410395b694193bf0f32796b265ca4c",
+      "after_sha256": "7da8ce509f85cd268e4dd72fc14c1d94a7410395b694193bf0f32796b265ca4c"
+    },
+    "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/probe-bcb871cc30abeb5f-default-75fv7a7fij6radzh318": {
+      "unchanged": true,
+      "before_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "after_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/srv/ephpm/sites/alice.lab.test/probe-bcb871cc30abeb5f-own_container": {
+      "unchanged": true,
+      "before_sha256": "5ecc73f36a2c68497a972e91728f75c7e9a607edfce7af93f7c112b968d81aec",
+      "after_sha256": "5ecc73f36a2c68497a972e91728f75c7e9a607edfce7af93f7c112b968d81aec"
+    },
+    "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/probe-bcb871cc30abeb5f-own_upload_tmp": {
+      "unchanged": true,
+      "before_sha256": "d87ea120f4bd1fad6539ae83003b028bf3f6938325e8eb8c3046351f6603eb38",
+      "after_sha256": "d87ea120f4bd1fad6539ae83003b028bf3f6938325e8eb8c3046351f6603eb38"
+    },
+    "/srv/ephpm/sites/bob.lab.test/probe-bcb871cc30abeb5f-own_container": {
+      "unchanged": true,
+      "before_sha256": "5ecc73f36a2c68497a972e91728f75c7e9a607edfce7af93f7c112b968d81aec",
+      "after_sha256": "5ecc73f36a2c68497a972e91728f75c7e9a607edfce7af93f7c112b968d81aec"
+    },
+    "/tmp/probe-bcb871cc30abeb5f-os-tmp": {
+      "unchanged": true,
+      "before_sha256": "b752579cd519a7087f70f204f357219b05cce0a3f552df88a98ce5b36e14cbcd",
+      "after_sha256": "b752579cd519a7087f70f204f357219b05cce0a3f552df88a98ce5b36e14cbcd"
+    }
+  },
+  "cleanup": {
+    "/dev/shm/probe-bcb871cc30abeb5f-shared_shm": true,
+    "/srv/ephpm/sites/alice.lab.test/probe-bcb871cc30abeb5f-own_container": true,
+    "/srv/ephpm/sites/bob.lab.test/probe-bcb871cc30abeb5f-own_container": true,
+    "/srv/ephpm/sites/probe-bcb871cc30abeb5f-shared_sites_parent": true,
+    "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/sessions/probe-bcb871cc30abeb5f-own_sessions": true,
+    "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/probe-bcb871cc30abeb5f-default-fedq3u3ie0ej56nnchD": true,
+    "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/probe-bcb871cc30abeb5f-own_tmp": true,
+    "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/probe-bcb871cc30abeb5f-own_upload_tmp": true,
+    "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/sessions/probe-bcb871cc30abeb5f-own_sessions": true,
+    "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/probe-bcb871cc30abeb5f-default-75fv7a7fij6radzh318": true,
+    "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/probe-bcb871cc30abeb5f-own_tmp": true,
+    "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/probe-bcb871cc30abeb5f-own_upload_tmp": true,
+    "/tmp/probe-bcb871cc30abeb5f-os-tmp": true,
+    "/tmp/probe-bcb871cc30abeb5f-shared_tmp": true,
+    "/var/lib/ephpm-web/probe-bcb871cc30abeb5f-shared_service_state": true,
+    "/var/tmp/probe-bcb871cc30abeb5f-os-var_tmp": true,
+    "/var/tmp/probe-bcb871cc30abeb5f-shared_var_tmp": true,
+    "/srv/ephpm/sites/alice.lab.test/public/probe-bcb871cc30abeb5f-local.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/probe-bcb871cc30abeb5f-local.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/probe-bcb871cc30abeb5f-cross.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/probe-bcb871cc30abeb5f-cross.php": true
+  }
+}

@@ -1,0 +1,269 @@
+{
+  "category": "storage",
+  "run_id": "20260908T231851Z-storage",
+  "pid": 915,
+  "cases": [
+    {
+      "label": "MySQL write",
+      "host": "alice.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "109",
+          "date": "Tue, 08 Sep 2026 23:18:51 GMT"
+        },
+        "body": "{\"user\":\"alice.lab.test\",\"password_present\":true,\"connected\":true,\"rows\":[{\"id\":1,\"value\":\"alice.lab.test\"}]}",
+        "json": {
+          "user": "alice.lab.test",
+          "password_present": true,
+          "connected": true,
+          "rows": [
+            {
+              "id": 1,
+              "value": "alice.lab.test"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "label": "MySQL read",
+      "host": "bob.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "198",
+          "date": "Tue, 08 Sep 2026 23:18:51 GMT"
+        },
+        "body": "{\"user\":\"bob.lab.test\",\"password_present\":true,\"connected\":true,\"exception\":\"SQLSTATE[42S02]: Base table or view not found: 1146 SQLite error: Parse error: no such table: security_6c4d306c29625fcc\"}",
+        "json": {
+          "user": "bob.lab.test",
+          "password_present": true,
+          "connected": true,
+          "exception": "SQLSTATE[42S02]: Base table or view not found: 1146 SQLite error: Parse error: no such table: security_6c4d306c29625fcc"
+        }
+      }
+    },
+    {
+      "label": "MySQL write",
+      "host": "bob.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "105",
+          "date": "Tue, 08 Sep 2026 23:18:51 GMT"
+        },
+        "body": "{\"user\":\"bob.lab.test\",\"password_present\":true,\"connected\":true,\"rows\":[{\"id\":1,\"value\":\"bob.lab.test\"}]}",
+        "json": {
+          "user": "bob.lab.test",
+          "password_present": true,
+          "connected": true,
+          "rows": [
+            {
+              "id": 1,
+              "value": "bob.lab.test"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "label": "MySQL read",
+      "host": "alice.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "109",
+          "date": "Tue, 08 Sep 2026 23:18:51 GMT"
+        },
+        "body": "{\"user\":\"alice.lab.test\",\"password_present\":true,\"connected\":true,\"rows\":[{\"id\":1,\"value\":\"alice.lab.test\"}]}",
+        "json": {
+          "user": "alice.lab.test",
+          "password_present": true,
+          "connected": true,
+          "rows": [
+            {
+              "id": 1,
+              "value": "alice.lab.test"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "label": "MySQL peer-auth",
+      "host": "alice.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "170",
+          "date": "Tue, 08 Sep 2026 23:18:51 GMT"
+        },
+        "body": "{\"user\":\"alice.lab.test\",\"password_present\":true,\"exception\":\"SQLSTATE[HY000] [1698] Authenticate failed, user: \\\"bob.lab.test\\\", auth_plugin: \\\"mysql_native_password\\\"\"}",
+        "json": {
+          "user": "alice.lab.test",
+          "password_present": true,
+          "exception": "SQLSTATE[HY000] [1698] Authenticate failed, user: \"bob.lab.test\", auth_plugin: \"mysql_native_password\""
+        }
+      }
+    },
+    {
+      "label": "MySQL switch-db",
+      "host": "alice.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "134",
+          "date": "Tue, 08 Sep 2026 23:18:51 GMT"
+        },
+        "body": "{\"user\":\"alice.lab.test\",\"password_present\":true,\"connected\":true,\"use_peer_accepted\":true,\"rows\":[{\"id\":1,\"value\":\"alice.lab.test\"}]}",
+        "json": {
+          "user": "alice.lab.test",
+          "password_present": true,
+          "connected": true,
+          "use_peer_accepted": true,
+          "rows": [
+            {
+              "id": 1,
+              "value": "alice.lab.test"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "label": "MySQL read",
+      "host": "bob.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "105",
+          "date": "Tue, 08 Sep 2026 23:18:51 GMT"
+        },
+        "body": "{\"user\":\"bob.lab.test\",\"password_present\":true,\"connected\":true,\"rows\":[{\"id\":1,\"value\":\"bob.lab.test\"}]}",
+        "json": {
+          "user": "bob.lab.test",
+          "password_present": true,
+          "connected": true,
+          "rows": [
+            {
+              "id": 1,
+              "value": "bob.lab.test"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "label": "MySQL peer-auth",
+      "host": "bob.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "170",
+          "date": "Tue, 08 Sep 2026 23:18:51 GMT"
+        },
+        "body": "{\"user\":\"bob.lab.test\",\"password_present\":true,\"exception\":\"SQLSTATE[HY000] [1698] Authenticate failed, user: \\\"alice.lab.test\\\", auth_plugin: \\\"mysql_native_password\\\"\"}",
+        "json": {
+          "user": "bob.lab.test",
+          "password_present": true,
+          "exception": "SQLSTATE[HY000] [1698] Authenticate failed, user: \"alice.lab.test\", auth_plugin: \"mysql_native_password\""
+        }
+      }
+    },
+    {
+      "label": "MySQL switch-db",
+      "host": "bob.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "130",
+          "date": "Tue, 08 Sep 2026 23:18:51 GMT"
+        },
+        "body": "{\"user\":\"bob.lab.test\",\"password_present\":true,\"connected\":true,\"use_peer_accepted\":true,\"rows\":[{\"id\":1,\"value\":\"bob.lab.test\"}]}",
+        "json": {
+          "user": "bob.lab.test",
+          "password_present": true,
+          "connected": true,
+          "use_peer_accepted": true,
+          "rows": [
+            {
+              "id": 1,
+              "value": "bob.lab.test"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "label": "MySQL cleanup",
+      "host": "alice.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "66",
+          "date": "Tue, 08 Sep 2026 23:18:53 GMT"
+        },
+        "body": "{\"user\":\"alice.lab.test\",\"password_present\":true,\"connected\":true}",
+        "json": {
+          "user": "alice.lab.test",
+          "password_present": true,
+          "connected": true
+        }
+      }
+    },
+    {
+      "label": "MySQL cleanup",
+      "host": "bob.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "64",
+          "date": "Tue, 08 Sep 2026 23:18:53 GMT"
+        },
+        "body": "{\"user\":\"bob.lab.test\",\"password_present\":true,\"connected\":true}",
+        "json": {
+          "user": "bob.lab.test",
+          "password_present": true,
+          "connected": true
+        }
+      }
+    }
+  ],
+  "cleanup": {
+    "/srv/ephpm/sites/alice.lab.test/public/security-6c4d306c29625fcc-mysql-read.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-6c4d306c29625fcc-mysql-read.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-6c4d306c29625fcc-mysql-cleanup.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-6c4d306c29625fcc-held-upload.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-6c4d306c29625fcc-mysql-switch-db.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-6c4d306c29625fcc-mysql-switch-db.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-6c4d306c29625fcc-upload-state": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-6c4d306c29625fcc-mysql-write.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-6c4d306c29625fcc-mysql-peer-auth.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-6c4d306c29625fcc-mysql-write.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-6c4d306c29625fcc-mysql-cleanup.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-6c4d306c29625fcc-mysql-peer-auth.php": true
+  }
+}

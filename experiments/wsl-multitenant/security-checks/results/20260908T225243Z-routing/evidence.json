@@ -1,0 +1,761 @@
+{
+  "category": "routing",
+  "run_id": "20260908T225243Z-routing",
+  "pid": 222,
+  "cases": [
+    {
+      "label": "HTTP1 canonical",
+      "sent_host": "alice.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "152",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "{\"tenant\":\"alice.lab.test\",\"host\":\"alice.lab.test\",\"basedir\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test:\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9\"}",
+        "json": {
+          "tenant": "alice.lab.test",
+          "host": "alice.lab.test",
+          "basedir": "/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9"
+        }
+      }
+    },
+    {
+      "label": "HTTP1 uppercase",
+      "sent_host": "ALICE.LAB.TEST",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "152",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "{\"tenant\":\"alice.lab.test\",\"host\":\"ALICE.LAB.TEST\",\"basedir\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test:\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9\"}",
+        "json": {
+          "tenant": "alice.lab.test",
+          "host": "ALICE.LAB.TEST",
+          "basedir": "/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9"
+        }
+      }
+    },
+    {
+      "label": "HTTP1 trailing dot",
+      "sent_host": "alice.lab.test.",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "153",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "{\"tenant\":\"alice.lab.test\",\"host\":\"alice.lab.test.\",\"basedir\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test:\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9\"}",
+        "json": {
+          "tenant": "alice.lab.test",
+          "host": "alice.lab.test.",
+          "basedir": "/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9"
+        }
+      }
+    },
+    {
+      "label": "HTTP1 port",
+      "sent_host": "alice.lab.test:8080",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "157",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "{\"tenant\":\"alice.lab.test\",\"host\":\"alice.lab.test:8080\",\"basedir\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test:\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9\"}",
+        "json": {
+          "tenant": "alice.lab.test",
+          "host": "alice.lab.test:8080",
+          "basedir": "/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9"
+        }
+      }
+    },
+    {
+      "label": "HTTP1 forwarded host",
+      "sent_host": "alice.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "152",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "{\"tenant\":\"alice.lab.test\",\"host\":\"alice.lab.test\",\"basedir\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test:\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9\"}",
+        "json": {
+          "tenant": "alice.lab.test",
+          "host": "alice.lab.test",
+          "basedir": "/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9"
+        }
+      }
+    },
+    {
+      "label": "HTTP1 traversal",
+      "sent_host": "../bob.lab.test",
+      "response": {
+        "status": 404,
+        "headers": {
+          "content-type": "text/plain",
+          "content-length": "13",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "404 Not Found"
+      }
+    },
+    {
+      "label": "HTTP1 encoded traversal",
+      "sent_host": "%2e%2e/bob.lab.test",
+      "response": {
+        "status": 404,
+        "headers": {
+          "content-type": "text/plain",
+          "content-length": "13",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "404 Not Found"
+      }
+    },
+    {
+      "label": "HTTP1 backslash",
+      "sent_host": "alice.lab.test\\..\\bob.lab.test",
+      "response": {
+        "status": 404,
+        "headers": {
+          "content-type": "text/plain",
+          "content-length": "13",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "404 Not Found"
+      }
+    },
+    {
+      "label": "HTTP1 unknown",
+      "sent_host": "missing.lab.test",
+      "response": {
+        "status": 404,
+        "headers": {
+          "content-type": "text/plain",
+          "content-length": "13",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "404 Not Found"
+      }
+    },
+    {
+      "label": "HTTP1 connection reuse",
+      "sent_host": "alice.lab.test",
+      "status": 200,
+      "body": "{\"tenant\":\"alice.lab.test\",\"host\":\"alice.lab.test\",\"basedir\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test:\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9\"}"
+    },
+    {
+      "label": "HTTP1 connection reuse",
+      "sent_host": "bob.lab.test",
+      "status": 200,
+      "body": "{\"tenant\":\"bob.lab.test\",\"host\":\"bob.lab.test\",\"basedir\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test:\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443\"}"
+    },
+    {
+      "label": "HTTP1 connection reuse",
+      "sent_host": "alice.lab.test",
+      "status": 200,
+      "body": "{\"tenant\":\"alice.lab.test\",\"host\":\"alice.lab.test\",\"basedir\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test:\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9\"}"
+    },
+    {
+      "label": "HTTP1 connection reuse",
+      "sent_host": "bob.lab.test",
+      "status": 200,
+      "body": "{\"tenant\":\"bob.lab.test\",\"host\":\"bob.lab.test\",\"basedir\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test:\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443\"}"
+    },
+    {
+      "label": "HTTP1 connection reuse",
+      "sent_host": "alice.lab.test",
+      "status": 200,
+      "body": "{\"tenant\":\"alice.lab.test\",\"host\":\"alice.lab.test\",\"basedir\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test:\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9\"}"
+    },
+    {
+      "label": "HTTP1 connection reuse",
+      "sent_host": "bob.lab.test",
+      "status": 200,
+      "body": "{\"tenant\":\"bob.lab.test\",\"host\":\"bob.lab.test\",\"basedir\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test:\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443\"}"
+    },
+    {
+      "label": "HTTP1 connection reuse",
+      "sent_host": "alice.lab.test",
+      "status": 200,
+      "body": "{\"tenant\":\"alice.lab.test\",\"host\":\"alice.lab.test\",\"basedir\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test:\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9\"}"
+    },
+    {
+      "label": "HTTP1 connection reuse",
+      "sent_host": "bob.lab.test",
+      "status": 200,
+      "body": "{\"tenant\":\"bob.lab.test\",\"host\":\"bob.lab.test\",\"basedir\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test:\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443\"}"
+    },
+    {
+      "label": "HTTP1 duplicate host",
+      "raw_response": "HTTP/1.1 200 OK\r\nx-powered-by: PHP/8.4.23\r\ncontent-type: application/json\r\ncontent-length: 150\r\nconnection: close\r\ndate: Tue, 08 Sep 2026 22:52:43 GMT\r\n\r\n{\"tenant\":\"alice.lab.test\",\"host\":\"bob.lab.test\",\"basedir\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test:\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9\"}"
+    },
+    {
+      "label": "HTTP1 absolute URI conflict",
+      "raw_response": "HTTP/1.1 200 OK\r\nx-powered-by: PHP/8.4.23\r\ncontent-type: application/json\r\ncontent-length: 152\r\nconnection: close\r\ndate: Tue, 08 Sep 2026 22:52:43 GMT\r\n\r\n{\"tenant\":\"alice.lab.test\",\"host\":\"alice.lab.test\",\"basedir\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test:\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9\"}"
+    },
+    {
+      "label": "HTTP1 missing host",
+      "raw_response": "HTTP/1.1 404 Not Found\r\ncontent-type: text/plain\r\nconnection: close\r\ncontent-length: 13\r\ndate: Tue, 08 Sep 2026 22:52:43 GMT\r\n\r\n404 Not Found"
+    },
+    {
+      "label": "HTTP2 authority routing",
+      "authority": "alice.lab.test",
+      "extra_headers": [],
+      "headers": [
+        [
+          ":status",
+          "200"
+        ],
+        [
+          "x-powered-by",
+          "PHP/8.4.23"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "content-length",
+          "152"
+        ],
+        [
+          "date",
+          "Tue, 08 Sep 2026 22:52:43 GMT"
+        ]
+      ],
+      "body": "{\"tenant\":\"alice.lab.test\",\"host\":\"alice.lab.test\",\"basedir\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test:\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9\"}",
+      "events": [
+        "RemoteSettingsChanged",
+        "SettingsAcknowledged",
+        "WindowUpdated",
+        "ResponseReceived",
+        "DataReceived",
+        "StreamEnded"
+      ]
+    },
+    {
+      "label": "HTTP2 authority routing",
+      "authority": "bob.lab.test",
+      "extra_headers": [],
+      "headers": [
+        [
+          ":status",
+          "200"
+        ],
+        [
+          "x-powered-by",
+          "PHP/8.4.23"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "content-length",
+          "144"
+        ],
+        [
+          "date",
+          "Tue, 08 Sep 2026 22:52:43 GMT"
+        ]
+      ],
+      "body": "{\"tenant\":\"bob.lab.test\",\"host\":\"bob.lab.test\",\"basedir\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test:\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443\"}",
+      "events": [
+        "ResponseReceived",
+        "DataReceived",
+        "StreamEnded"
+      ]
+    },
+    {
+      "label": "HTTP2 authority routing",
+      "authority": "alice.lab.test",
+      "extra_headers": [
+        [
+          "host",
+          "bob.lab.test"
+        ]
+      ],
+      "headers": [
+        [
+          ":status",
+          "200"
+        ],
+        [
+          "x-powered-by",
+          "PHP/8.4.23"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "content-length",
+          "144"
+        ],
+        [
+          "date",
+          "Tue, 08 Sep 2026 22:52:43 GMT"
+        ]
+      ],
+      "body": "{\"tenant\":\"bob.lab.test\",\"host\":\"bob.lab.test\",\"basedir\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test:\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443\"}",
+      "events": [
+        "ResponseReceived",
+        "DataReceived",
+        "StreamEnded"
+      ]
+    },
+    {
+      "label": "HTTP2 authority routing",
+      "authority": "bob.lab.test",
+      "extra_headers": [
+        [
+          "x-forwarded-host",
+          "alice.lab.test"
+        ]
+      ],
+      "headers": [
+        [
+          ":status",
+          "200"
+        ],
+        [
+          "x-powered-by",
+          "PHP/8.4.23"
+        ],
+        [
+          "content-type",
+          "application/json"
+        ],
+        [
+          "content-length",
+          "144"
+        ],
+        [
+          "date",
+          "Tue, 08 Sep 2026 22:52:43 GMT"
+        ]
+      ],
+      "body": "{\"tenant\":\"bob.lab.test\",\"host\":\"bob.lab.test\",\"basedir\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test:\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443\"}",
+      "events": [
+        "ResponseReceived",
+        "DataReceived",
+        "StreamEnded"
+      ]
+    },
+    {
+      "label": "management public surface",
+      "host": "alice.lab.test",
+      "path": "/_ephpm/health",
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "content-length": "15",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "{\"status\":\"ok\"}",
+        "json": {
+          "status": "ok"
+        }
+      }
+    },
+    {
+      "label": "management public surface",
+      "host": "alice.lab.test",
+      "path": "/_ephpm/ready",
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "content-length": "18",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "{\"status\":\"ready\"}",
+        "json": {
+          "status": "ready"
+        }
+      }
+    },
+    {
+      "label": "management public surface",
+      "host": "alice.lab.test",
+      "path": "/_ephpm/primary",
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "content-length": "16",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "{\"primary\":true}",
+        "json": {
+          "primary": true
+        }
+      }
+    },
+    {
+      "label": "management public surface",
+      "host": "alice.lab.test",
+      "path": "/_ephpm/requests",
+      "response": {
+        "status": 404,
+        "headers": {
+          "content-type": "text/plain",
+          "content-length": "138",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "404 Not Found: the request timeline is disabled. Enable it with [server.diagnostics] request_log = true (on by default under `ephpm dev`)."
+      }
+    },
+    {
+      "label": "management public surface",
+      "host": "alice.lab.test",
+      "path": "/_ephpm/config",
+      "response": {
+        "status": 404,
+        "headers": {
+          "content-type": "text/plain",
+          "content-length": "215",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "404 Not Found: no such ePHPm endpoint. The /_ephpm/ path namespace is reserved by the server and is never routed to the application. Known endpoints: /_ephpm/health, /_ephpm/ready, /_ephpm/primary, /_ephpm/requests."
+      }
+    },
+    {
+      "label": "management public surface",
+      "host": "alice.lab.test",
+      "path": "/_ephpm/deploy",
+      "response": {
+        "status": 404,
+        "headers": {
+          "content-type": "text/plain",
+          "content-length": "215",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "404 Not Found: no such ePHPm endpoint. The /_ephpm/ path namespace is reserved by the server and is never routed to the application. Known endpoints: /_ephpm/health, /_ephpm/ready, /_ephpm/primary, /_ephpm/requests."
+      }
+    },
+    {
+      "label": "management public surface",
+      "host": "alice.lab.test",
+      "path": "/_ephpm/metrics",
+      "response": {
+        "status": 404,
+        "headers": {
+          "content-type": "text/plain",
+          "content-length": "215",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "404 Not Found: no such ePHPm endpoint. The /_ephpm/ path namespace is reserved by the server and is never routed to the application. Known endpoints: /_ephpm/health, /_ephpm/ready, /_ephpm/primary, /_ephpm/requests."
+      }
+    },
+    {
+      "label": "management public surface",
+      "host": "alice.lab.test",
+      "path": "/metrics",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "213",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "{\n    \"experiment\": \"wsl-multitenant\",\n    \"tenant\": \"alice.lab.test\",\n    \"php\": \"8.4.23\",\n    \"mode\": \"per_request\",\n    \"kv_available\": true,\n    \"db_available\": true,\n    \"status\": \"ready-for-test-planning\"\n}\n",
+        "json": {
+          "experiment": "wsl-multitenant",
+          "tenant": "alice.lab.test",
+          "php": "8.4.23",
+          "mode": "per_request",
+          "kv_available": true,
+          "db_available": true,
+          "status": "ready-for-test-planning"
+        }
+      }
+    },
+    {
+      "label": "management public surface",
+      "host": "alice.lab.test",
+      "path": "/api/config",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "213",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "{\n    \"experiment\": \"wsl-multitenant\",\n    \"tenant\": \"alice.lab.test\",\n    \"php\": \"8.4.23\",\n    \"mode\": \"per_request\",\n    \"kv_available\": true,\n    \"db_available\": true,\n    \"status\": \"ready-for-test-planning\"\n}\n",
+        "json": {
+          "experiment": "wsl-multitenant",
+          "tenant": "alice.lab.test",
+          "php": "8.4.23",
+          "mode": "per_request",
+          "kv_available": true,
+          "db_available": true,
+          "status": "ready-for-test-planning"
+        }
+      }
+    },
+    {
+      "label": "management public surface",
+      "host": "alice.lab.test",
+      "path": "/api/workers",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "213",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "{\n    \"experiment\": \"wsl-multitenant\",\n    \"tenant\": \"alice.lab.test\",\n    \"php\": \"8.4.23\",\n    \"mode\": \"per_request\",\n    \"kv_available\": true,\n    \"db_available\": true,\n    \"status\": \"ready-for-test-planning\"\n}\n",
+        "json": {
+          "experiment": "wsl-multitenant",
+          "tenant": "alice.lab.test",
+          "php": "8.4.23",
+          "mode": "per_request",
+          "kv_available": true,
+          "db_available": true,
+          "status": "ready-for-test-planning"
+        }
+      }
+    },
+    {
+      "label": "management public surface",
+      "host": "bob.lab.test",
+      "path": "/_ephpm/health",
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "content-length": "15",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "{\"status\":\"ok\"}",
+        "json": {
+          "status": "ok"
+        }
+      }
+    },
+    {
+      "label": "management public surface",
+      "host": "bob.lab.test",
+      "path": "/_ephpm/ready",
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "content-length": "18",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "{\"status\":\"ready\"}",
+        "json": {
+          "status": "ready"
+        }
+      }
+    },
+    {
+      "label": "management public surface",
+      "host": "bob.lab.test",
+      "path": "/_ephpm/primary",
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "content-length": "16",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "{\"primary\":true}",
+        "json": {
+          "primary": true
+        }
+      }
+    },
+    {
+      "label": "management public surface",
+      "host": "bob.lab.test",
+      "path": "/_ephpm/requests",
+      "response": {
+        "status": 404,
+        "headers": {
+          "content-type": "text/plain",
+          "content-length": "138",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "404 Not Found: the request timeline is disabled. Enable it with [server.diagnostics] request_log = true (on by default under `ephpm dev`)."
+      }
+    },
+    {
+      "label": "management public surface",
+      "host": "bob.lab.test",
+      "path": "/_ephpm/config",
+      "response": {
+        "status": 404,
+        "headers": {
+          "content-type": "text/plain",
+          "content-length": "215",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "404 Not Found: no such ePHPm endpoint. The /_ephpm/ path namespace is reserved by the server and is never routed to the application. Known endpoints: /_ephpm/health, /_ephpm/ready, /_ephpm/primary, /_ephpm/requests."
+      }
+    },
+    {
+      "label": "management public surface",
+      "host": "bob.lab.test",
+      "path": "/_ephpm/deploy",
+      "response": {
+        "status": 404,
+        "headers": {
+          "content-type": "text/plain",
+          "content-length": "215",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "404 Not Found: no such ePHPm endpoint. The /_ephpm/ path namespace is reserved by the server and is never routed to the application. Known endpoints: /_ephpm/health, /_ephpm/ready, /_ephpm/primary, /_ephpm/requests."
+      }
+    },
+    {
+      "label": "management public surface",
+      "host": "bob.lab.test",
+      "path": "/_ephpm/metrics",
+      "response": {
+        "status": 404,
+        "headers": {
+          "content-type": "text/plain",
+          "content-length": "215",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "404 Not Found: no such ePHPm endpoint. The /_ephpm/ path namespace is reserved by the server and is never routed to the application. Known endpoints: /_ephpm/health, /_ephpm/ready, /_ephpm/primary, /_ephpm/requests."
+      }
+    },
+    {
+      "label": "management public surface",
+      "host": "bob.lab.test",
+      "path": "/metrics",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "211",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "{\n    \"experiment\": \"wsl-multitenant\",\n    \"tenant\": \"bob.lab.test\",\n    \"php\": \"8.4.23\",\n    \"mode\": \"per_request\",\n    \"kv_available\": true,\n    \"db_available\": true,\n    \"status\": \"ready-for-test-planning\"\n}\n",
+        "json": {
+          "experiment": "wsl-multitenant",
+          "tenant": "bob.lab.test",
+          "php": "8.4.23",
+          "mode": "per_request",
+          "kv_available": true,
+          "db_available": true,
+          "status": "ready-for-test-planning"
+        }
+      }
+    },
+    {
+      "label": "management public surface",
+      "host": "bob.lab.test",
+      "path": "/api/config",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "211",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "{\n    \"experiment\": \"wsl-multitenant\",\n    \"tenant\": \"bob.lab.test\",\n    \"php\": \"8.4.23\",\n    \"mode\": \"per_request\",\n    \"kv_available\": true,\n    \"db_available\": true,\n    \"status\": \"ready-for-test-planning\"\n}\n",
+        "json": {
+          "experiment": "wsl-multitenant",
+          "tenant": "bob.lab.test",
+          "php": "8.4.23",
+          "mode": "per_request",
+          "kv_available": true,
+          "db_available": true,
+          "status": "ready-for-test-planning"
+        }
+      }
+    },
+    {
+      "label": "management public surface",
+      "host": "bob.lab.test",
+      "path": "/api/workers",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "211",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "{\n    \"experiment\": \"wsl-multitenant\",\n    \"tenant\": \"bob.lab.test\",\n    \"php\": \"8.4.23\",\n    \"mode\": \"per_request\",\n    \"kv_available\": true,\n    \"db_available\": true,\n    \"status\": \"ready-for-test-planning\"\n}\n",
+        "json": {
+          "experiment": "wsl-multitenant",
+          "tenant": "bob.lab.test",
+          "php": "8.4.23",
+          "mode": "per_request",
+          "kv_available": true,
+          "db_available": true,
+          "status": "ready-for-test-planning"
+        }
+      }
+    },
+    {
+      "label": "management tenant-origin readiness",
+      "address": "127.0.0.1",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "135",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "{\"body\":false,\"warnings\":[\"file_get_contents(http:\\/\\/127.0.0.1:8080\\/_ephpm\\/ready): Failed to open stream: Operation not permitted\"]}",
+        "json": {
+          "body": false,
+          "warnings": [
+            "file_get_contents(http://127.0.0.1:8080/_ephpm/ready): Failed to open stream: Operation not permitted"
+          ]
+        }
+      }
+    },
+    {
+      "label": "management tenant-origin readiness",
+      "address": "[::ffff:127.0.0.1]",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "47",
+          "date": "Tue, 08 Sep 2026 22:52:43 GMT"
+        },
+        "body": "{\"body\":\"{\\\"status\\\":\\\"ready\\\"}\",\"warnings\":[]}",
+        "json": {
+          "body": "{\"status\":\"ready\"}",
+          "warnings": []
+        }
+      }
+    }
+  ],
+  "cleanup": {
+    "/srv/ephpm/sites/bob.lab.test/public/security-71a0ba985f44dd88-route.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-71a0ba985f44dd88-internal-18.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-71a0ba985f44dd88-internal-9.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-71a0ba985f44dd88-route.php": true
+  }
+}

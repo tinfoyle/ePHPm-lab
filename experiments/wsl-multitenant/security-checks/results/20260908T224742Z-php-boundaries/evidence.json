@@ -1,0 +1,2650 @@
+{
+  "category": "php-boundaries",
+  "run_id": "20260908T224742Z-php-boundaries",
+  "pid": 222,
+  "cases": [
+    {
+      "label": "filesystem and runtime restriction changes",
+      "host": "alice.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "5156",
+          "date": "Tue, 08 Sep 2026 22:47:42 GMT"
+        },
+        "body": "{\"own\":{\"value\":\"alice.lab.test:security-243ac994f18b1fc1\",\"warnings\":[]},\"own_symlink\":{\"value\":\"alice.lab.test:security-243ac994f18b1fc1\",\"warnings\":[]},\"peer\":{\"value\":false,\"warnings\":[\"file_get_contents(): open_basedir restriction in effect. File(\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\\/security-243ac994f18b1fc1-canary.txt) is not within the allowed path(s): (\\/srv\\/ephpm\\/sites\\/alice.lab.test:\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9)\",\"file_get_contents(\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\\/security-243ac994f18b1fc1-canary.txt): Failed to open stream: Operation not permitted\"]},\"peer_symlink\":{\"value\":false,\"warnings\":[\"file_get_contents(): open_basedir restriction in effect. File(\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\\/security-243ac994f18b1fc1-peer-link) is not within the allowed path(s): (\\/srv\\/ephpm\\/sites\\/alice.lab.test:\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9)\",\"file_get_contents(\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\\/security-243ac994f18b1fc1-peer-link): Failed to open stream: Operation not permitted\"]},\"peer_traversal\":{\"value\":false,\"warnings\":[\"file_get_contents(): open_basedir restriction in effect. File(\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\\/..\\/..\\/bob.lab.test\\/public\\/security-243ac994f18b1fc1-canary.txt) is not within the allowed path(s): (\\/srv\\/ephpm\\/sites\\/alice.lab.test:\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9)\",\"file_get_contents(\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\\/..\\/..\\/bob.lab.test\\/public\\/security-243ac994f18b1fc1-canary.txt): Failed to open stream: Operation not permitted\"]},\"peer_file_wrapper\":{\"value\":false,\"warnings\":[\"file_get_contents(): open_basedir restriction in effect. File(\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\\/security-243ac994f18b1fc1-canary.txt) is not within the allowed path(s): (\\/srv\\/ephpm\\/sites\\/alice.lab.test:\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9)\",\"file_get_contents(file:\\/\\/\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\\/security-243ac994f18b1fc1-canary.txt): Failed to open stream: Operation not permitted\"]},\"peer_filter\":{\"value\":false,\"warnings\":[\"file_get_contents(): open_basedir restriction in effect. File(\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\\/security-243ac994f18b1fc1-canary.txt) is not within the allowed path(s): (\\/srv\\/ephpm\\/sites\\/alice.lab.test:\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9)\",\"file_get_contents(php:\\/\\/filter\\/convert.base64-encode\\/resource=\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\\/security-243ac994f18b1fc1-canary.txt): Failed to open stream: operation failed\"]},\"own_filter\":{\"value\":\"YWxpY2UubGFiLnRlc3Q6c2VjdXJpdHktMjQzYWM5OTRmMThiMWZjMQ==\",\"warnings\":[]},\"peer_proc_root\":{\"value\":false,\"warnings\":[\"file_get_contents(): open_basedir restriction in effect. File(\\/proc\\/self\\/root\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\\/security-243ac994f18b1fc1-canary.txt) is not within the allowed path(s): (\\/srv\\/ephpm\\/sites\\/alice.lab.test:\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9)\",\"file_get_contents(\\/proc\\/self\\/root\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\\/security-243ac994f18b1fc1-canary.txt): Failed to open stream: Operation not permitted\"]},\"ini_open_basedir\":{\"value\":false,\"warnings\":[]},\"effective_open_basedir\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test:\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9\",\"ini_sys_temp_dir\":{\"value\":false,\"warnings\":[]},\"effective_sys_temp_dir\":\"\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9\\/tmp\",\"ini_upload_tmp_dir\":{\"value\":false,\"warnings\":[]},\"effective_upload_tmp_dir\":\"\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9\\/tmp\",\"ini_session.save_path\":{\"value\":false,\"warnings\":[]},\"effective_session.save_path\":\"\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9\\/sessions\",\"ini_disable_functions\":{\"value\":false,\"warnings\":[]},\"effective_disable_functions\":\"exec,passthru,shell_exec,system,proc_open,popen,pcntl_exec,pcntl_fork,pcntl_signal,pcntl_alarm,pcntl_wait,pcntl_waitpid,pcntl_async_signals,pcntl_signal_dispatch,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,posix_kill,posix_setuid,posix_setgid,posix_seteuid,posix_setegid,pfsockopen,shm_attach,shm_get_var,shm_put_var,shm_remove,shm_detach,shm_has_var,sem_get,sem_acquire,sem_release,sem_remove,msg_get_queue,msg_send,msg_receive,msg_remove_queue,msg_set_queue,msg_stat_queue,dl,mail,opcache_reset,opcache_compile_file,opcache_invalidate,opcache_get_status,opcache_get_configuration,opcache_is_script_cached\",\"ini_mysqli.allow_persistent\":{\"value\":false,\"warnings\":[]},\"effective_mysqli.allow_persistent\":\"0\",\"peer_after_ini\":{\"value\":false,\"warnings\":[\"file_get_contents(): open_basedir restriction in effect. File(\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\\/security-243ac994f18b1fc1-canary.txt) is not within the allowed path(s): (\\/srv\\/ephpm\\/sites\\/alice.lab.test:\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9)\",\"file_get_contents(\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\\/security-243ac994f18b1fc1-canary.txt): Failed to open stream: Operation not permitted\"]},\"open_basedir_before\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test:\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9\"}",
+        "json": {
+          "own": {
+            "value": "alice.lab.test:security-243ac994f18b1fc1",
+            "warnings": []
+          },
+          "own_symlink": {
+            "value": "alice.lab.test:security-243ac994f18b1fc1",
+            "warnings": []
+          },
+          "peer": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-canary.txt) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "file_get_contents(/srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-canary.txt): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "peer_symlink": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-peer-link) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "file_get_contents(/srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-peer-link): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "peer_traversal": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/srv/ephpm/sites/alice.lab.test/public/../../bob.lab.test/public/security-243ac994f18b1fc1-canary.txt) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "file_get_contents(/srv/ephpm/sites/alice.lab.test/public/../../bob.lab.test/public/security-243ac994f18b1fc1-canary.txt): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "peer_file_wrapper": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-canary.txt) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "file_get_contents(file:///srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-canary.txt): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "peer_filter": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-canary.txt) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "file_get_contents(php://filter/convert.base64-encode/resource=/srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-canary.txt): Failed to open stream: operation failed"
+            ]
+          },
+          "own_filter": {
+            "value": "YWxpY2UubGFiLnRlc3Q6c2VjdXJpdHktMjQzYWM5OTRmMThiMWZjMQ==",
+            "warnings": []
+          },
+          "peer_proc_root": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/proc/self/root/srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-canary.txt) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "file_get_contents(/proc/self/root/srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-canary.txt): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "ini_open_basedir": {
+            "value": false,
+            "warnings": []
+          },
+          "effective_open_basedir": "/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9",
+          "ini_sys_temp_dir": {
+            "value": false,
+            "warnings": []
+          },
+          "effective_sys_temp_dir": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp",
+          "ini_upload_tmp_dir": {
+            "value": false,
+            "warnings": []
+          },
+          "effective_upload_tmp_dir": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp",
+          "ini_session.save_path": {
+            "value": false,
+            "warnings": []
+          },
+          "effective_session.save_path": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/sessions",
+          "ini_disable_functions": {
+            "value": false,
+            "warnings": []
+          },
+          "effective_disable_functions": "exec,passthru,shell_exec,system,proc_open,popen,pcntl_exec,pcntl_fork,pcntl_signal,pcntl_alarm,pcntl_wait,pcntl_waitpid,pcntl_async_signals,pcntl_signal_dispatch,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,posix_kill,posix_setuid,posix_setgid,posix_seteuid,posix_setegid,pfsockopen,shm_attach,shm_get_var,shm_put_var,shm_remove,shm_detach,shm_has_var,sem_get,sem_acquire,sem_release,sem_remove,msg_get_queue,msg_send,msg_receive,msg_remove_queue,msg_set_queue,msg_stat_queue,dl,mail,opcache_reset,opcache_compile_file,opcache_invalidate,opcache_get_status,opcache_get_configuration,opcache_is_script_cached",
+          "ini_mysqli.allow_persistent": {
+            "value": false,
+            "warnings": []
+          },
+          "effective_mysqli.allow_persistent": "0",
+          "peer_after_ini": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-canary.txt) is not within the allowed path(s): (/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9)",
+              "file_get_contents(/srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-canary.txt): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "open_basedir_before": "/srv/ephpm/sites/alice.lab.test:/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9"
+        }
+      }
+    },
+    {
+      "label": "filesystem and runtime restriction changes",
+      "host": "bob.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "5122",
+          "date": "Tue, 08 Sep 2026 22:47:42 GMT"
+        },
+        "body": "{\"own\":{\"value\":\"bob.lab.test:security-243ac994f18b1fc1\",\"warnings\":[]},\"own_symlink\":{\"value\":\"bob.lab.test:security-243ac994f18b1fc1\",\"warnings\":[]},\"peer\":{\"value\":false,\"warnings\":[\"file_get_contents(): open_basedir restriction in effect. File(\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\\/security-243ac994f18b1fc1-canary.txt) is not within the allowed path(s): (\\/srv\\/ephpm\\/sites\\/bob.lab.test:\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443)\",\"file_get_contents(\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\\/security-243ac994f18b1fc1-canary.txt): Failed to open stream: Operation not permitted\"]},\"peer_symlink\":{\"value\":false,\"warnings\":[\"file_get_contents(): open_basedir restriction in effect. File(\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\\/security-243ac994f18b1fc1-peer-link) is not within the allowed path(s): (\\/srv\\/ephpm\\/sites\\/bob.lab.test:\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443)\",\"file_get_contents(\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\\/security-243ac994f18b1fc1-peer-link): Failed to open stream: Operation not permitted\"]},\"peer_traversal\":{\"value\":false,\"warnings\":[\"file_get_contents(): open_basedir restriction in effect. File(\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\\/..\\/..\\/alice.lab.test\\/public\\/security-243ac994f18b1fc1-canary.txt) is not within the allowed path(s): (\\/srv\\/ephpm\\/sites\\/bob.lab.test:\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443)\",\"file_get_contents(\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\\/..\\/..\\/alice.lab.test\\/public\\/security-243ac994f18b1fc1-canary.txt): Failed to open stream: Operation not permitted\"]},\"peer_file_wrapper\":{\"value\":false,\"warnings\":[\"file_get_contents(): open_basedir restriction in effect. File(\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\\/security-243ac994f18b1fc1-canary.txt) is not within the allowed path(s): (\\/srv\\/ephpm\\/sites\\/bob.lab.test:\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443)\",\"file_get_contents(file:\\/\\/\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\\/security-243ac994f18b1fc1-canary.txt): Failed to open stream: Operation not permitted\"]},\"peer_filter\":{\"value\":false,\"warnings\":[\"file_get_contents(): open_basedir restriction in effect. File(\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\\/security-243ac994f18b1fc1-canary.txt) is not within the allowed path(s): (\\/srv\\/ephpm\\/sites\\/bob.lab.test:\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443)\",\"file_get_contents(php:\\/\\/filter\\/convert.base64-encode\\/resource=\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\\/security-243ac994f18b1fc1-canary.txt): Failed to open stream: operation failed\"]},\"own_filter\":{\"value\":\"Ym9iLmxhYi50ZXN0OnNlY3VyaXR5LTI0M2FjOTk0ZjE4YjFmYzE=\",\"warnings\":[]},\"peer_proc_root\":{\"value\":false,\"warnings\":[\"file_get_contents(): open_basedir restriction in effect. File(\\/proc\\/self\\/root\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\\/security-243ac994f18b1fc1-canary.txt) is not within the allowed path(s): (\\/srv\\/ephpm\\/sites\\/bob.lab.test:\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443)\",\"file_get_contents(\\/proc\\/self\\/root\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\\/security-243ac994f18b1fc1-canary.txt): Failed to open stream: Operation not permitted\"]},\"ini_open_basedir\":{\"value\":false,\"warnings\":[]},\"effective_open_basedir\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test:\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443\",\"ini_sys_temp_dir\":{\"value\":false,\"warnings\":[]},\"effective_sys_temp_dir\":\"\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443\\/tmp\",\"ini_upload_tmp_dir\":{\"value\":false,\"warnings\":[]},\"effective_upload_tmp_dir\":\"\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443\\/tmp\",\"ini_session.save_path\":{\"value\":false,\"warnings\":[]},\"effective_session.save_path\":\"\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443\\/sessions\",\"ini_disable_functions\":{\"value\":false,\"warnings\":[]},\"effective_disable_functions\":\"exec,passthru,shell_exec,system,proc_open,popen,pcntl_exec,pcntl_fork,pcntl_signal,pcntl_alarm,pcntl_wait,pcntl_waitpid,pcntl_async_signals,pcntl_signal_dispatch,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,posix_kill,posix_setuid,posix_setgid,posix_seteuid,posix_setegid,pfsockopen,shm_attach,shm_get_var,shm_put_var,shm_remove,shm_detach,shm_has_var,sem_get,sem_acquire,sem_release,sem_remove,msg_get_queue,msg_send,msg_receive,msg_remove_queue,msg_set_queue,msg_stat_queue,dl,mail,opcache_reset,opcache_compile_file,opcache_invalidate,opcache_get_status,opcache_get_configuration,opcache_is_script_cached\",\"ini_mysqli.allow_persistent\":{\"value\":false,\"warnings\":[]},\"effective_mysqli.allow_persistent\":\"0\",\"peer_after_ini\":{\"value\":false,\"warnings\":[\"file_get_contents(): open_basedir restriction in effect. File(\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\\/security-243ac994f18b1fc1-canary.txt) is not within the allowed path(s): (\\/srv\\/ephpm\\/sites\\/bob.lab.test:\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443)\",\"file_get_contents(\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\\/security-243ac994f18b1fc1-canary.txt): Failed to open stream: Operation not permitted\"]},\"open_basedir_before\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test:\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443\"}",
+        "json": {
+          "own": {
+            "value": "bob.lab.test:security-243ac994f18b1fc1",
+            "warnings": []
+          },
+          "own_symlink": {
+            "value": "bob.lab.test:security-243ac994f18b1fc1",
+            "warnings": []
+          },
+          "peer": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-canary.txt) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "file_get_contents(/srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-canary.txt): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "peer_symlink": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-peer-link) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "file_get_contents(/srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-peer-link): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "peer_traversal": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/srv/ephpm/sites/bob.lab.test/public/../../alice.lab.test/public/security-243ac994f18b1fc1-canary.txt) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "file_get_contents(/srv/ephpm/sites/bob.lab.test/public/../../alice.lab.test/public/security-243ac994f18b1fc1-canary.txt): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "peer_file_wrapper": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-canary.txt) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "file_get_contents(file:///srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-canary.txt): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "peer_filter": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-canary.txt) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "file_get_contents(php://filter/convert.base64-encode/resource=/srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-canary.txt): Failed to open stream: operation failed"
+            ]
+          },
+          "own_filter": {
+            "value": "Ym9iLmxhYi50ZXN0OnNlY3VyaXR5LTI0M2FjOTk0ZjE4YjFmYzE=",
+            "warnings": []
+          },
+          "peer_proc_root": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/proc/self/root/srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-canary.txt) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "file_get_contents(/proc/self/root/srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-canary.txt): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "ini_open_basedir": {
+            "value": false,
+            "warnings": []
+          },
+          "effective_open_basedir": "/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443",
+          "ini_sys_temp_dir": {
+            "value": false,
+            "warnings": []
+          },
+          "effective_sys_temp_dir": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp",
+          "ini_upload_tmp_dir": {
+            "value": false,
+            "warnings": []
+          },
+          "effective_upload_tmp_dir": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp",
+          "ini_session.save_path": {
+            "value": false,
+            "warnings": []
+          },
+          "effective_session.save_path": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/sessions",
+          "ini_disable_functions": {
+            "value": false,
+            "warnings": []
+          },
+          "effective_disable_functions": "exec,passthru,shell_exec,system,proc_open,popen,pcntl_exec,pcntl_fork,pcntl_signal,pcntl_alarm,pcntl_wait,pcntl_waitpid,pcntl_async_signals,pcntl_signal_dispatch,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,posix_kill,posix_setuid,posix_setgid,posix_seteuid,posix_setegid,pfsockopen,shm_attach,shm_get_var,shm_put_var,shm_remove,shm_detach,shm_has_var,sem_get,sem_acquire,sem_release,sem_remove,msg_get_queue,msg_send,msg_receive,msg_remove_queue,msg_set_queue,msg_stat_queue,dl,mail,opcache_reset,opcache_compile_file,opcache_invalidate,opcache_get_status,opcache_get_configuration,opcache_is_script_cached",
+          "ini_mysqli.allow_persistent": {
+            "value": false,
+            "warnings": []
+          },
+          "effective_mysqli.allow_persistent": "0",
+          "peer_after_ini": {
+            "value": false,
+            "warnings": [
+              "file_get_contents(): open_basedir restriction in effect. File(/srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-canary.txt) is not within the allowed path(s): (/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443)",
+              "file_get_contents(/srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-canary.txt): Failed to open stream: Operation not permitted"
+            ]
+          },
+          "open_basedir_before": "/srv/ephpm/sites/bob.lab.test:/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443"
+        }
+      }
+    },
+    {
+      "label": "state baseline",
+      "host": "alice.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "164",
+          "date": "Tue, 08 Sep 2026 22:47:42 GMT"
+        },
+        "body": "{\"host\":\"alice.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+        "json": {
+          "host": "alice.lab.test",
+          "env": false,
+          "global": null,
+          "precision": "14",
+          "include_path": ".:",
+          "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+          "previous_handler": null
+        }
+      }
+    },
+    {
+      "label": "state baseline",
+      "host": "bob.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "160",
+          "date": "Tue, 08 Sep 2026 22:47:42 GMT"
+        },
+        "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+        "json": {
+          "host": "bob.lab.test",
+          "env": false,
+          "global": null,
+          "precision": "14",
+          "include_path": ".:",
+          "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+          "previous_handler": null
+        }
+      }
+    },
+    {
+      "label": "overlapping request state",
+      "mutator": "alice.lab.test",
+      "observer": "bob.lab.test",
+      "round": 0,
+      "observed": [
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "197",
+            "date": "Tue, 08 Sep 2026 22:47:42 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "197",
+            "date": "Tue, 08 Sep 2026 22:47:42 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "197",
+            "date": "Tue, 08 Sep 2026 22:47:42 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "197",
+            "date": "Tue, 08 Sep 2026 22:47:42 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "197",
+            "date": "Tue, 08 Sep 2026 22:47:42 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "197",
+            "date": "Tue, 08 Sep 2026 22:47:42 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "197",
+            "date": "Tue, 08 Sep 2026 22:47:42 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "197",
+            "date": "Tue, 08 Sep 2026 22:47:42 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "197",
+            "date": "Tue, 08 Sep 2026 22:47:42 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "197",
+            "date": "Tue, 08 Sep 2026 22:47:42 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        }
+      ],
+      "mutator_response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "50",
+          "date": "Tue, 08 Sep 2026 22:47:43 GMT"
+        },
+        "body": "{\"set\":\"alice.lab.test:security-243ac994f18b1fc1\"}",
+        "json": {
+          "set": "alice.lab.test:security-243ac994f18b1fc1"
+        }
+      }
+    },
+    {
+      "label": "overlapping request state",
+      "mutator": "alice.lab.test",
+      "observer": "bob.lab.test",
+      "round": 1,
+      "observed": [
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "197",
+            "date": "Tue, 08 Sep 2026 22:47:43 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "197",
+            "date": "Tue, 08 Sep 2026 22:47:43 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "160",
+            "date": "Tue, 08 Sep 2026 22:47:43 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "160",
+            "date": "Tue, 08 Sep 2026 22:47:43 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "160",
+            "date": "Tue, 08 Sep 2026 22:47:43 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "160",
+            "date": "Tue, 08 Sep 2026 22:47:43 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "160",
+            "date": "Tue, 08 Sep 2026 22:47:43 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "160",
+            "date": "Tue, 08 Sep 2026 22:47:43 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "160",
+            "date": "Tue, 08 Sep 2026 22:47:43 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "160",
+            "date": "Tue, 08 Sep 2026 22:47:43 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        }
+      ],
+      "mutator_response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "50",
+          "date": "Tue, 08 Sep 2026 22:47:43 GMT"
+        },
+        "body": "{\"set\":\"alice.lab.test:security-243ac994f18b1fc1\"}",
+        "json": {
+          "set": "alice.lab.test:security-243ac994f18b1fc1"
+        }
+      }
+    },
+    {
+      "label": "overlapping request state",
+      "mutator": "alice.lab.test",
+      "observer": "bob.lab.test",
+      "round": 2,
+      "observed": [
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "197",
+            "date": "Tue, 08 Sep 2026 22:47:43 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "197",
+            "date": "Tue, 08 Sep 2026 22:47:43 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "197",
+            "date": "Tue, 08 Sep 2026 22:47:43 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "197",
+            "date": "Tue, 08 Sep 2026 22:47:43 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "197",
+            "date": "Tue, 08 Sep 2026 22:47:43 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "197",
+            "date": "Tue, 08 Sep 2026 22:47:43 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "197",
+            "date": "Tue, 08 Sep 2026 22:47:43 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "197",
+            "date": "Tue, 08 Sep 2026 22:47:43 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "197",
+            "date": "Tue, 08 Sep 2026 22:47:43 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "197",
+            "date": "Tue, 08 Sep 2026 22:47:43 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        }
+      ],
+      "mutator_response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "50",
+          "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+        },
+        "body": "{\"set\":\"alice.lab.test:security-243ac994f18b1fc1\"}",
+        "json": {
+          "set": "alice.lab.test:security-243ac994f18b1fc1"
+        }
+      }
+    },
+    {
+      "label": "state after shutdown",
+      "host": "alice.lab.test",
+      "observations": [
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "201",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "201",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "201",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"alice.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "alice.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "164",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "164",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "164",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "164",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "164",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "160",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "160",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "160",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "160",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "160",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "160",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "160",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "160",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        }
+      ]
+    },
+    {
+      "label": "overlapping request state",
+      "mutator": "bob.lab.test",
+      "observer": "alice.lab.test",
+      "round": 0,
+      "observed": [
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        }
+      ],
+      "mutator_response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "48",
+          "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+        },
+        "body": "{\"set\":\"bob.lab.test:security-243ac994f18b1fc1\"}",
+        "json": {
+          "set": "bob.lab.test:security-243ac994f18b1fc1"
+        }
+      }
+    },
+    {
+      "label": "overlapping request state",
+      "mutator": "bob.lab.test",
+      "observer": "alice.lab.test",
+      "round": 1,
+      "observed": [
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "164",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "164",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "164",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "164",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "164",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "164",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "164",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "164",
+            "date": "Tue, 08 Sep 2026 22:47:44 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        }
+      ],
+      "mutator_response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "48",
+          "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+        },
+        "body": "{\"set\":\"bob.lab.test:security-243ac994f18b1fc1\"}",
+        "json": {
+          "set": "bob.lab.test:security-243ac994f18b1fc1"
+        }
+      }
+    },
+    {
+      "label": "overlapping request state",
+      "mutator": "bob.lab.test",
+      "observer": "alice.lab.test",
+      "round": 2,
+      "observed": [
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        }
+      ],
+      "mutator_response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "48",
+          "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+        },
+        "body": "{\"set\":\"bob.lab.test:security-243ac994f18b1fc1\"}",
+        "json": {
+          "set": "bob.lab.test:security-243ac994f18b1fc1"
+        }
+      }
+    },
+    {
+      "label": "state after shutdown",
+      "host": "bob.lab.test",
+      "observations": [
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "199",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":\"bob.lab.test:security-243ac994f18b1fc1\",\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": "bob.lab.test:security-243ac994f18b1fc1",
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "164",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "164",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "164",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "164",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "164",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"alice.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/alice.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "alice.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/alice.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "160",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "160",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "160",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "160",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "160",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "160",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "160",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        },
+        {
+          "status": 200,
+          "headers": {
+            "x-powered-by": "PHP/8.4.23",
+            "content-type": "application/json",
+            "content-length": "160",
+            "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+          },
+          "body": "{\"host\":\"bob.lab.test\",\"env\":false,\"global\":null,\"precision\":\"14\",\"include_path\":\".:\",\"cwd\":\"\\/srv\\/ephpm\\/sites\\/bob.lab.test\\/public\",\"previous_handler\":null}",
+          "json": {
+            "host": "bob.lab.test",
+            "env": false,
+            "global": null,
+            "precision": "14",
+            "include_path": ".:",
+            "cwd": "/srv/ephpm/sites/bob.lab.test/public",
+            "previous_handler": null
+          }
+        }
+      ]
+    },
+    {
+      "label": "session write",
+      "host": "alice.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "expires": "Thu, 19 Nov 1981 08:52:00 GMT",
+          "cache-control": "no-store, no-cache, must-revalidate",
+          "pragma": "no-cache",
+          "content-length": "203",
+          "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+        },
+        "body": "{\"started\":true,\"handler\":\"files\",\"path\":\"\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9\\/sessions\",\"id\":\"security243ac994f18b1fc1\",\"value\":\"alice.lab.test:security-243ac994f18b1fc1\",\"warnings\":[]}",
+        "json": {
+          "started": true,
+          "handler": "files",
+          "path": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/sessions",
+          "id": "security243ac994f18b1fc1",
+          "value": "alice.lab.test:security-243ac994f18b1fc1",
+          "warnings": []
+        }
+      }
+    },
+    {
+      "label": "session read",
+      "host": "bob.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "expires": "Thu, 19 Nov 1981 08:52:00 GMT",
+          "cache-control": "no-store, no-cache, must-revalidate",
+          "pragma": "no-cache",
+          "content-length": "163",
+          "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+        },
+        "body": "{\"started\":true,\"handler\":\"files\",\"path\":\"\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443\\/sessions\",\"id\":\"security243ac994f18b1fc1\",\"value\":null,\"warnings\":[]}",
+        "json": {
+          "started": true,
+          "handler": "files",
+          "path": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/sessions",
+          "id": "security243ac994f18b1fc1",
+          "value": null,
+          "warnings": []
+        }
+      }
+    },
+    {
+      "label": "session write",
+      "host": "bob.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "expires": "Thu, 19 Nov 1981 08:52:00 GMT",
+          "cache-control": "no-store, no-cache, must-revalidate",
+          "pragma": "no-cache",
+          "content-length": "199",
+          "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+        },
+        "body": "{\"started\":true,\"handler\":\"files\",\"path\":\"\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443\\/sessions\",\"id\":\"security243ac994f18b1fc1\",\"value\":\"bob.lab.test:security-243ac994f18b1fc1\",\"warnings\":[]}",
+        "json": {
+          "started": true,
+          "handler": "files",
+          "path": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/sessions",
+          "id": "security243ac994f18b1fc1",
+          "value": "bob.lab.test:security-243ac994f18b1fc1",
+          "warnings": []
+        }
+      }
+    },
+    {
+      "label": "session read",
+      "host": "alice.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "expires": "Thu, 19 Nov 1981 08:52:00 GMT",
+          "cache-control": "no-store, no-cache, must-revalidate",
+          "pragma": "no-cache",
+          "content-length": "203",
+          "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+        },
+        "body": "{\"started\":true,\"handler\":\"files\",\"path\":\"\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9\\/sessions\",\"id\":\"security243ac994f18b1fc1\",\"value\":\"alice.lab.test:security-243ac994f18b1fc1\",\"warnings\":[]}",
+        "json": {
+          "started": true,
+          "handler": "files",
+          "path": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/sessions",
+          "id": "security243ac994f18b1fc1",
+          "value": "alice.lab.test:security-243ac994f18b1fc1",
+          "warnings": []
+        }
+      }
+    },
+    {
+      "label": "session read",
+      "host": "bob.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "expires": "Thu, 19 Nov 1981 08:52:00 GMT",
+          "cache-control": "no-store, no-cache, must-revalidate",
+          "pragma": "no-cache",
+          "content-length": "199",
+          "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+        },
+        "body": "{\"started\":true,\"handler\":\"files\",\"path\":\"\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443\\/sessions\",\"id\":\"security243ac994f18b1fc1\",\"value\":\"bob.lab.test:security-243ac994f18b1fc1\",\"warnings\":[]}",
+        "json": {
+          "started": true,
+          "handler": "files",
+          "path": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/sessions",
+          "id": "security243ac994f18b1fc1",
+          "value": "bob.lab.test:security-243ac994f18b1fc1",
+          "warnings": []
+        }
+      }
+    },
+    {
+      "label": "session cleanup",
+      "host": "alice.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "expires": "Thu, 19 Nov 1981 08:52:00 GMT",
+          "cache-control": "no-store, no-cache, must-revalidate",
+          "pragma": "no-cache",
+          "content-length": "179",
+          "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+        },
+        "body": "{\"started\":true,\"handler\":\"files\",\"path\":\"\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9\\/sessions\",\"id\":\"\",\"value\":\"alice.lab.test:security-243ac994f18b1fc1\",\"warnings\":[]}",
+        "json": {
+          "started": true,
+          "handler": "files",
+          "path": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/sessions",
+          "id": "",
+          "value": "alice.lab.test:security-243ac994f18b1fc1",
+          "warnings": []
+        }
+      }
+    },
+    {
+      "label": "session cleanup",
+      "host": "bob.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "expires": "Thu, 19 Nov 1981 08:52:00 GMT",
+          "cache-control": "no-store, no-cache, must-revalidate",
+          "pragma": "no-cache",
+          "content-length": "175",
+          "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+        },
+        "body": "{\"started\":true,\"handler\":\"files\",\"path\":\"\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443\\/sessions\",\"id\":\"\",\"value\":\"bob.lab.test:security-243ac994f18b1fc1\",\"warnings\":[]}",
+        "json": {
+          "started": true,
+          "handler": "files",
+          "path": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/sessions",
+          "id": "",
+          "value": "bob.lab.test:security-243ac994f18b1fc1",
+          "warnings": []
+        }
+      }
+    },
+    {
+      "label": "multipart upload",
+      "host": "alice.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "373",
+          "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+        },
+        "body": "{\"file\":{\"name\":\"security-243ac994f18b1fc1.txt\",\"full_path\":\"..\\/security-243ac994f18b1fc1.txt\",\"type\":\"text\\/plain\",\"tmp_name\":\"\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9\\/tmp\\/phpcqk8p1h7af6i8Rn6Z0F\",\"error\":0,\"size\":40},\"sys_temp\":\"\\/tmp\\/ephpm-vhosts\\/alice.lab.test-f608fc08338292b9\\/tmp\",\"uploaded\":true,\"content\":\"alice.lab.test:security-243ac994f18b1fc1\"}",
+        "json": {
+          "file": {
+            "name": "security-243ac994f18b1fc1.txt",
+            "full_path": "../security-243ac994f18b1fc1.txt",
+            "type": "text/plain",
+            "tmp_name": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/phpcqk8p1h7af6i8Rn6Z0F",
+            "error": 0,
+            "size": 40
+          },
+          "sys_temp": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp",
+          "uploaded": true,
+          "content": "alice.lab.test:security-243ac994f18b1fc1"
+        }
+      }
+    },
+    {
+      "label": "upload temporary cleanup",
+      "host": "alice.lab.test",
+      "path": "/tmp/ephpm-vhosts/alice.lab.test-f608fc08338292b9/tmp/phpcqk8p1h7af6i8Rn6Z0F",
+      "absent": false
+    },
+    {
+      "label": "multipart upload",
+      "host": "bob.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "367",
+          "date": "Tue, 08 Sep 2026 22:47:45 GMT"
+        },
+        "body": "{\"file\":{\"name\":\"security-243ac994f18b1fc1.txt\",\"full_path\":\"..\\/security-243ac994f18b1fc1.txt\",\"type\":\"text\\/plain\",\"tmp_name\":\"\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443\\/tmp\\/phpnn8ee6s5nf64d47cMN3\",\"error\":0,\"size\":38},\"sys_temp\":\"\\/tmp\\/ephpm-vhosts\\/bob.lab.test-9c7fab4e84dc9443\\/tmp\",\"uploaded\":true,\"content\":\"bob.lab.test:security-243ac994f18b1fc1\"}",
+        "json": {
+          "file": {
+            "name": "security-243ac994f18b1fc1.txt",
+            "full_path": "../security-243ac994f18b1fc1.txt",
+            "type": "text/plain",
+            "tmp_name": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/phpnn8ee6s5nf64d47cMN3",
+            "error": 0,
+            "size": 38
+          },
+          "sys_temp": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp",
+          "uploaded": true,
+          "content": "bob.lab.test:security-243ac994f18b1fc1"
+        }
+      }
+    },
+    {
+      "label": "upload temporary cleanup",
+      "host": "bob.lab.test",
+      "path": "/tmp/ephpm-vhosts/bob.lab.test-9c7fab4e84dc9443/tmp/phpnn8ee6s5nf64d47cMN3",
+      "absent": false
+    },
+    {
+      "label": "data write",
+      "host": "alice.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "170",
+          "date": "Tue, 08 Sep 2026 22:47:49 GMT"
+        },
+        "body": "{\"db_available\":true,\"action\":{\"value\":true,\"warnings\":[]},\"kv\":{\"value\":\"alice.lab.test\",\"warnings\":[]},\"db\":{\"value\":[{\"id\":1,\"value\":\"alice.lab.test\"}],\"warnings\":[]}}",
+        "json": {
+          "db_available": true,
+          "action": {
+            "value": true,
+            "warnings": []
+          },
+          "kv": {
+            "value": "alice.lab.test",
+            "warnings": []
+          },
+          "db": {
+            "value": [
+              {
+                "id": 1,
+                "value": "alice.lab.test"
+              }
+            ],
+            "warnings": []
+          }
+        }
+      }
+    },
+    {
+      "label": "data read",
+      "host": "bob.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "238",
+          "date": "Tue, 08 Sep 2026 22:47:49 GMT"
+        },
+        "body": "{\"db_available\":true,\"action\":{\"value\":true,\"warnings\":[]},\"kv\":{\"value\":null,\"warnings\":[]},\"db\":{\"value\":false,\"exception\":\"Exception: SQLSTATE[42S02]: SQLite error: Parse error: no such table: security_243ac994f18b1fc1\",\"warnings\":[]}}",
+        "json": {
+          "db_available": true,
+          "action": {
+            "value": true,
+            "warnings": []
+          },
+          "kv": {
+            "value": null,
+            "warnings": []
+          },
+          "db": {
+            "value": false,
+            "exception": "Exception: SQLSTATE[42S02]: SQLite error: Parse error: no such table: security_243ac994f18b1fc1",
+            "warnings": []
+          }
+        }
+      }
+    },
+    {
+      "label": "data write",
+      "host": "bob.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "166",
+          "date": "Tue, 08 Sep 2026 22:47:52 GMT"
+        },
+        "body": "{\"db_available\":true,\"action\":{\"value\":true,\"warnings\":[]},\"kv\":{\"value\":\"bob.lab.test\",\"warnings\":[]},\"db\":{\"value\":[{\"id\":1,\"value\":\"bob.lab.test\"}],\"warnings\":[]}}",
+        "json": {
+          "db_available": true,
+          "action": {
+            "value": true,
+            "warnings": []
+          },
+          "kv": {
+            "value": "bob.lab.test",
+            "warnings": []
+          },
+          "db": {
+            "value": [
+              {
+                "id": 1,
+                "value": "bob.lab.test"
+              }
+            ],
+            "warnings": []
+          }
+        }
+      }
+    },
+    {
+      "label": "data read",
+      "host": "alice.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "170",
+          "date": "Tue, 08 Sep 2026 22:47:52 GMT"
+        },
+        "body": "{\"db_available\":true,\"action\":{\"value\":true,\"warnings\":[]},\"kv\":{\"value\":\"alice.lab.test\",\"warnings\":[]},\"db\":{\"value\":[{\"id\":1,\"value\":\"alice.lab.test\"}],\"warnings\":[]}}",
+        "json": {
+          "db_available": true,
+          "action": {
+            "value": true,
+            "warnings": []
+          },
+          "kv": {
+            "value": "alice.lab.test",
+            "warnings": []
+          },
+          "db": {
+            "value": [
+              {
+                "id": 1,
+                "value": "alice.lab.test"
+              }
+            ],
+            "warnings": []
+          }
+        }
+      }
+    },
+    {
+      "label": "data read",
+      "host": "bob.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "166",
+          "date": "Tue, 08 Sep 2026 22:47:52 GMT"
+        },
+        "body": "{\"db_available\":true,\"action\":{\"value\":true,\"warnings\":[]},\"kv\":{\"value\":\"bob.lab.test\",\"warnings\":[]},\"db\":{\"value\":[{\"id\":1,\"value\":\"bob.lab.test\"}],\"warnings\":[]}}",
+        "json": {
+          "db_available": true,
+          "action": {
+            "value": true,
+            "warnings": []
+          },
+          "kv": {
+            "value": "bob.lab.test",
+            "warnings": []
+          },
+          "db": {
+            "value": [
+              {
+                "id": 1,
+                "value": "bob.lab.test"
+              }
+            ],
+            "warnings": []
+          }
+        }
+      }
+    },
+    {
+      "label": "data cleanup",
+      "host": "alice.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "238",
+          "date": "Tue, 08 Sep 2026 22:47:52 GMT"
+        },
+        "body": "{\"db_available\":true,\"action\":{\"value\":true,\"warnings\":[]},\"kv\":{\"value\":null,\"warnings\":[]},\"db\":{\"value\":false,\"exception\":\"Exception: SQLSTATE[42S02]: SQLite error: Parse error: no such table: security_243ac994f18b1fc1\",\"warnings\":[]}}",
+        "json": {
+          "db_available": true,
+          "action": {
+            "value": true,
+            "warnings": []
+          },
+          "kv": {
+            "value": null,
+            "warnings": []
+          },
+          "db": {
+            "value": false,
+            "exception": "Exception: SQLSTATE[42S02]: SQLite error: Parse error: no such table: security_243ac994f18b1fc1",
+            "warnings": []
+          }
+        }
+      }
+    },
+    {
+      "label": "data cleanup",
+      "host": "bob.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "238",
+          "date": "Tue, 08 Sep 2026 22:47:52 GMT"
+        },
+        "body": "{\"db_available\":true,\"action\":{\"value\":true,\"warnings\":[]},\"kv\":{\"value\":null,\"warnings\":[]},\"db\":{\"value\":false,\"exception\":\"Exception: SQLSTATE[42S02]: SQLite error: Parse error: no such table: security_243ac994f18b1fc1\",\"warnings\":[]}}",
+        "json": {
+          "db_available": true,
+          "action": {
+            "value": true,
+            "warnings": []
+          },
+          "kv": {
+            "value": null,
+            "warnings": []
+          },
+          "db": {
+            "value": false,
+            "exception": "Exception: SQLSTATE[42S02]: SQLite error: Parse error: no such table: security_243ac994f18b1fc1",
+            "warnings": []
+          }
+        }
+      }
+    }
+  ],
+  "cleanup": {
+    "/srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-upload.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-state-mutate.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-session-read.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-canary.txt": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-session-destroy.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-state-observe.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-state-observe.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-data-read.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-data-cleanup.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-own-link": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-upload.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-own-link": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-peer-link": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-session-read.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-canary.txt": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-session-destroy.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-data-read.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-peer-link": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-filesystem.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-session-write.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-state-mutate.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-session-write.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-data-write.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-filesystem.php": true,
+    "/srv/ephpm/sites/bob.lab.test/public/security-243ac994f18b1fc1-data-write.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-243ac994f18b1fc1-data-cleanup.php": true
+  }
+}

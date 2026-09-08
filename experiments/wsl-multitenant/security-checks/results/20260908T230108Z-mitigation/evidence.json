@@ -1,0 +1,21 @@
+{
+  "category": "mitigation",
+  "run_id": "20260908T230108Z-mitigation",
+  "pid": 820,
+  "cases": [
+    {
+      "label": "limited load ladder",
+      "exit": 0,
+      "summary": "load/summary.json",
+      "settings": {
+        "per_site_rate": 5,
+        "per_site_burst": 20
+      }
+    },
+    {
+      "label": "baseline restored",
+      "identical": true
+    }
+  ],
+  "cleanup": {}
+}

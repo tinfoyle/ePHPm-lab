@@ -1,0 +1,146 @@
+{
+  "category": "outbound",
+  "run_id": "20260908T225941Z-outbound",
+  "pid": 222,
+  "cases": [
+    {
+      "label": "root reachable positive control",
+      "address": "10.203.0.2",
+      "tcp": "HTTP/1.0 200 OK\r\nContent-Length: 13\r\n\r\nMOCK-METADATA",
+      "udp": "MOCK-UDP"
+    },
+    {
+      "label": "root reachable positive control",
+      "address": "169.254.169.254",
+      "tcp": "HTTP/1.0 200 OK\r\nContent-Length: 13\r\n\r\nMOCK-METADATA",
+      "udp": "MOCK-UDP"
+    },
+    {
+      "label": "tenant outbound",
+      "host": "alice.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "602",
+          "date": "Tue, 08 Sep 2026 22:59:43 GMT"
+        },
+        "body": "{\"10.203.0.2\":{\"connected\":false,\"errno\":110,\"error\":\"Connection timed out\"},\"169.254.169.254\":{\"connected\":false,\"errno\":110,\"error\":\"Connection timed out\"},\"2852039166\":{\"connected\":false,\"errno\":110,\"error\":\"Connection timed out\"},\"0xa9fea9fe\":{\"connected\":false,\"errno\":110,\"error\":\"Connection timed out\"},\"[::ffff:169.254.169.254]\":{\"connected\":false,\"errno\":110,\"error\":\"Connection timed out\"},\"udp\":{\"written\":false,\"reply\":false,\"meta\":{\"timed_out\":true,\"blocked\":true,\"eof\":false,\"stream_type\":\"udp_socket\",\"mode\":\"r+\",\"unread_bytes\":0,\"seekable\":false,\"uri\":\"udp:\\/\\/169.254.169.254:18081\"}}}",
+        "json": {
+          "10.203.0.2": {
+            "connected": false,
+            "errno": 110,
+            "error": "Connection timed out"
+          },
+          "169.254.169.254": {
+            "connected": false,
+            "errno": 110,
+            "error": "Connection timed out"
+          },
+          "2852039166": {
+            "connected": false,
+            "errno": 110,
+            "error": "Connection timed out"
+          },
+          "0xa9fea9fe": {
+            "connected": false,
+            "errno": 110,
+            "error": "Connection timed out"
+          },
+          "[::ffff:169.254.169.254]": {
+            "connected": false,
+            "errno": 110,
+            "error": "Connection timed out"
+          },
+          "udp": {
+            "written": false,
+            "reply": false,
+            "meta": {
+              "timed_out": true,
+              "blocked": true,
+              "eof": false,
+              "stream_type": "udp_socket",
+              "mode": "r+",
+              "unread_bytes": 0,
+              "seekable": false,
+              "uri": "udp://169.254.169.254:18081"
+            }
+          }
+        }
+      }
+    },
+    {
+      "label": "tenant outbound",
+      "host": "bob.lab.test",
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "PHP/8.4.23",
+          "content-type": "application/json",
+          "content-length": "602",
+          "date": "Tue, 08 Sep 2026 22:59:45 GMT"
+        },
+        "body": "{\"10.203.0.2\":{\"connected\":false,\"errno\":110,\"error\":\"Connection timed out\"},\"169.254.169.254\":{\"connected\":false,\"errno\":110,\"error\":\"Connection timed out\"},\"2852039166\":{\"connected\":false,\"errno\":110,\"error\":\"Connection timed out\"},\"0xa9fea9fe\":{\"connected\":false,\"errno\":110,\"error\":\"Connection timed out\"},\"[::ffff:169.254.169.254]\":{\"connected\":false,\"errno\":110,\"error\":\"Connection timed out\"},\"udp\":{\"written\":false,\"reply\":false,\"meta\":{\"timed_out\":true,\"blocked\":true,\"eof\":false,\"stream_type\":\"udp_socket\",\"mode\":\"r+\",\"unread_bytes\":0,\"seekable\":false,\"uri\":\"udp:\\/\\/169.254.169.254:18081\"}}}",
+        "json": {
+          "10.203.0.2": {
+            "connected": false,
+            "errno": 110,
+            "error": "Connection timed out"
+          },
+          "169.254.169.254": {
+            "connected": false,
+            "errno": 110,
+            "error": "Connection timed out"
+          },
+          "2852039166": {
+            "connected": false,
+            "errno": 110,
+            "error": "Connection timed out"
+          },
+          "0xa9fea9fe": {
+            "connected": false,
+            "errno": 110,
+            "error": "Connection timed out"
+          },
+          "[::ffff:169.254.169.254]": {
+            "connected": false,
+            "errno": 110,
+            "error": "Connection timed out"
+          },
+          "udp": {
+            "written": false,
+            "reply": false,
+            "meta": {
+              "timed_out": true,
+              "blocked": true,
+              "eof": false,
+              "stream_type": "udp_socket",
+              "mode": "r+",
+              "unread_bytes": 0,
+              "seekable": false,
+              "uri": "udp://169.254.169.254:18081"
+            }
+          }
+        }
+      }
+    },
+    {
+      "label": "mock receipt log",
+      "log": "READY\nTCP ('10.203.0.1', 59204)\nUDP ROOT-POSITIVE ('10.203.0.1', 43653)\nTCP ('10.203.0.1', 40000)\nUDP ROOT-POSITIVE ('10.203.0.1', 46182)\n",
+      "tenant_datagram_received": false
+    },
+    {
+      "label": "effective firewall",
+      "rules": "table inet ephpm_lab {\n\tchain output {\n\t\ttype filter hook output priority filter; policy drop;\n\t\toifname \"sec-lab\" meta skuid 0 accept\n\t\toifname \"lo\" accept comment \"Loopback ownership delegated to ePHPm BPF\"\n\t}\n\n\tchain input {\n\t\ttype filter hook input priority filter; policy drop;\n\t\tiifname \"sec-lab\" ct state established,related accept\n\t\tiifname \"lo\" accept\n\t}\n}\n"
+    },
+    {
+      "label": "restored firewall",
+      "identical": true
+    }
+  ],
+  "cleanup": {
+    "/srv/ephpm/sites/bob.lab.test/public/security-799d8edfdf7e6251-outbound.php": true,
+    "/srv/ephpm/sites/alice.lab.test/public/security-799d8edfdf7e6251-outbound.php": true
+  }
+}

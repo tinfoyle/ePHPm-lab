@@ -1,0 +1,65 @@
+[
+  {
+    "trial": 0,
+    "phase": "warmup",
+    "concurrency": 0,
+    "attacker": "alice.lab.test",
+    "victim": "bob.lab.test",
+    "start_s": 0.00022047897800803185,
+    "duration_s": 10
+  },
+  {
+    "trial": 1,
+    "phase": "baseline",
+    "concurrency": 0,
+    "attacker": "alice.lab.test",
+    "victim": "bob.lab.test",
+    "start_s": 10.001285659964196,
+    "duration_s": 30
+  },
+  {
+    "trial": 1,
+    "phase": "load-1",
+    "concurrency": 1,
+    "attacker": "alice.lab.test",
+    "victim": "bob.lab.test",
+    "start_s": 40.002259992063046,
+    "duration_s": 30
+  },
+  {
+    "trial": 1,
+    "phase": "load-2",
+    "concurrency": 2,
+    "attacker": "alice.lab.test",
+    "victim": "bob.lab.test",
+    "start_s": 70.09837523696478,
+    "duration_s": 30
+  },
+  {
+    "trial": 1,
+    "phase": "load-4",
+    "concurrency": 4,
+    "attacker": "alice.lab.test",
+    "victim": "bob.lab.test",
+    "start_s": 100.19182023301255,
+    "duration_s": 30
+  },
+  {
+    "trial": 1,
+    "phase": "load-8",
+    "concurrency": 8,
+    "attacker": "alice.lab.test",
+    "victim": "bob.lab.test",
+    "start_s": 130.49009127402678,
+    "duration_s": 30
+  },
+  {
+    "trial": 1,
+    "phase": "recovery",
+    "concurrency": 0,
+    "attacker": "alice.lab.test",
+    "victim": "bob.lab.test",
+    "start_s": 161.06649745895993,
+    "duration_s": 30
+  }
+]

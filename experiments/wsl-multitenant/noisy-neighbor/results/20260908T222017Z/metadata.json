@@ -1,0 +1,14 @@
+{
+  "kernel": "6.18.33.2-microsoft-standard-WSL2",
+  "started_utc": "2026-09-08T22:20:17Z",
+  "seconds": 30,
+  "trials": 1,
+  "victim_rps": 2,
+  "static_rps": 1,
+  "victim_deadline_seconds": 1,
+  "attacker_deadline_seconds": 10,
+  "config_sha256": "a93ffe548f3da2ebbb600b0ee3bbd33daf8bc60855533c9e92c7dafbfa95868a",
+  "generator_cgroup": "0::/init.scope\n",
+  "threshold": "victim successful-response p95 > max(5 * baseline p95, 250 ms), OR >1% scheduled victim requests miss 1 s deadline/fail",
+  "workload_sha256": "1a305950578cd661227f629cc8c6ae4399cc8fdbeb0fccf8de4ac0a7a6518192"
+}
